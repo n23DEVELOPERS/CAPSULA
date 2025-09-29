@@ -1,0 +1,215 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DEV_DB_URL")
+}
+
+enum Roles {
+  SUPERADMIN
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Status {
+  PENDING
+  PROCESS
+  SUCCESS
+  CANCELLED
+}
+
+enum Rating {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+enum Complaint {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum Payment_type {
+  CASH
+  CARD
+}
+
+enum Wallet_type {
+  HUMO
+  UZCARD
+  VISA
+  MASTERCARD
+}
+
+model Admin {
+  id              Int     @id @default(autoincrement())
+  username        String  @unique
+  phone_number    String  @unique
+  hashed_password String
+  role            Roles   @default(ADMIN)
+  is_active       Boolean @default(true)
+}
+
+model Doctor {
+  id              Int     @id @default(autoincrement())
+  first_name      String
+  last_name       String
+  phone_number    String  @unique
+  age             Int
+  gender          Gender
+  hashed_password String
+  location        String
+  is_active       Boolean @default(true)
+  role            Roles   @default(DOCTOR)
+
+  speciality       Speciality[]
+  doctor_docs      Doctor_docs[]
+  doctor_book_time Doctor_book_time[]
+  service          Service[]
+  book_doctor      Book_doctor[]
+  chat             Chat[]
+  wallet           Wallet[]
+}
+
+model Patient {
+  id              Int     @id @default(autoincrement())
+  first_name      String
+  last_name       String
+  phone_number    String  @unique
+  age             Int
+  gender          Gender  @default(MALE)
+  hashed_password String
+  location        String
+  is_active       Boolean @default(true)
+  role            Roles   @default(PATIENT)
+
+  Book_doctor Book_doctor[]
+  Chat        Chat[]
+  Wallet      Wallet[]
+}
+
+model Doctor_docs {
+  id                  Int     @id @default(autoincrement())
+  passport_url        String
+  diplom_url          String
+  certificate_url     String
+  self_employment_url String
+  image_url           String
+  doctorId            Int
+  doctor              Doctor  @relation(fields: [doctorId], references: [id])
+  Image               Image[]
+}
+
+model Image {
+  id             Int         @id @default(autoincrement())
+  image_url      String
+  name           String
+  doctor_docs_id Int
+  docs           Doctor_docs @relation(fields: [doctor_docs_id], references: [id])
+}
+
+model Doctor_book_time {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  start_time DateTime
+  end_time   DateTime
+  is_active  Boolean  @default(true)
+  doctorId   Int
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+}
+
+model Speciality {
+  id          Int           @id @default(autoincrement())
+  name        String
+  is_active   Boolean       @default(true)
+  description String
+  doctorId    Int
+  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  Book_doctor Book_doctor[]
+}
+
+model Service {
+  id          Int           @id @default(autoincrement())
+  name        String
+  price       Decimal
+  description String
+  doctorId    Int
+  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  Book_doctor Book_doctor[]
+}
+
+model Book_doctor {
+  id        Int      @id @default(autoincrement())
+  book_date DateTime
+  is_active Boolean  @default(true)
+  status    Status   @default(PENDING)
+  location  String
+
+  service_id Int
+  service    Service @relation(fields: [service_id], references: [id])
+
+  speciality_id Int
+  speciality    Speciality @relation(fields: [speciality_id], references: [id])
+
+  patient_id Int
+  patient    Patient @relation(fields: [patient_id], references: [id])
+
+  doctorId Int
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  Payment Payment[]
+}
+
+model Chat {
+  id        Int       @id @default(autoincrement())
+  rating    Rating    @default(ONE)
+  comments  String
+  complaint Complaint @default(PENDING)
+
+  doctor_id Int
+  doctor    Doctor @relation(fields: [doctor_id], references: [id])
+
+  patient_id Int
+  patient    Patient @relation(fields: [patient_id], references: [id])
+}
+
+model Payment {
+  id           Int          @id @default(autoincrement())
+  status       Status       @default(PENDING)
+  patient_name String
+  doctor_name  String
+  payment_type Payment_type @default(CARD)
+  meeting_date DateTime     @default(now())
+  description  String
+
+  book_doctor_id Int
+  book_doctor    Book_doctor @relation(fields: [book_doctor_id], references: [id])
+}
+
+model Wallet {
+  id          Int         @id @default(autoincrement())
+  name        String
+  card_number String
+  type        Wallet_type @default(HUMO)
+  date        DateTime    @default(now())
+  cvv         Int
+
+  doctorId Int?
+  doctor   Doctor? @relation(fields: [doctorId], references: [id])
+
+  patientId Int?
+  patient   Patient? @relation(fields: [patientId], references: [id])
+}
