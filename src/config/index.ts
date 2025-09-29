@@ -8,6 +8,8 @@ type ConfigType = {
   ADMIN_USERNAME: string;
   ADMIN_EMAIL: string;
   ADMIN_PASSWORD: string;
+  ADMIN_PHONE_NUMBER: string;
+
   TOKEN: {
     ACCESS_KEY: string;
     ACCESS_TIME: string;
@@ -23,9 +25,12 @@ export const config: ConfigType = {
       ? String(process.env.DEV_DB_URL)
       : String(process.env.PROD_DB_URL),
   DB_SYNC: String(process.env.NODE_ENV) === 'dev' ? true : false,
+
   ADMIN_USERNAME: String(process.env.ADMIN_USERNAME),
   ADMIN_EMAIL: String(process.env.ADMIN_EMAIL),
   ADMIN_PASSWORD: String(process.env.ADMIN_PASSWORD),
+  ADMIN_PHONE_NUMBER: String(process.env.ADMIN_PHONE_NUMBER),
+
   TOKEN: {
     ACCESS_KEY: String(process.env.ACCESS_TOKEN_KEY),
     ACCESS_TIME: String(process.env.ACCESS_TOKEN_TIME),
