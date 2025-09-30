@@ -62,7 +62,7 @@ export class BaseService<CreateDto, UpdateDto, Entity> {
   }
 
   async findOneById(
-    id: string,
+    id: number,
     options?: { select?: any; include?: any },
   ): Promise<ISuccess> {
     const data = await this.model.findUnique({
@@ -86,7 +86,7 @@ export class BaseService<CreateDto, UpdateDto, Entity> {
     return successRes(data);
   }
 
-  async update(id: string, dto: UpdateDto): Promise<ISuccess> {
+  async update(id: number, dto: UpdateDto): Promise<ISuccess> {
     await this.findOneById(id);
     const data = await this.model.update({
       where: { id },
@@ -95,7 +95,7 @@ export class BaseService<CreateDto, UpdateDto, Entity> {
     return successRes(data);
   }
 
-  async delete(id: string): Promise<ISuccess> {
+  async delete(id: number): Promise<ISuccess> {
     await this.findOneById(id);
     await this.model.delete({ where: { id } });
     return successRes({});
