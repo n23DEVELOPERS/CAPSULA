@@ -2,7 +2,6 @@ import {
   ForbiddenException,
   Injectable,
   UnauthorizedException,
-  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
@@ -11,6 +10,7 @@ import { successRes } from 'src/infrastructure/response/success';
 import { IToken } from 'src/infrastructure/token/interface';
 import { TokenService } from 'src/infrastructure/token/Token';
 import { PrismaService } from 'src/core/prisma/prisma.service';
+import { SignInDto } from '../admin/dto/signin.dto';
 
 @Injectable()
 export class AuthService {
@@ -39,35 +39,58 @@ export class AuthService {
   /**
    * Login (username/phone_number + password)
    */
-  async signIn(role: string, username: string, password: string) {
-    let user: any;
+  async signIn(signinDto: SignInDto, res: Response) {
+    const { username, password } = signinDto;
+    let user: any = null;
+    let role: string = '';
 
-    if (role === 'DOCTOR') {
+    // 1) Doctor bo‘lishi mumkin
+    if (!user) {
       user = await this.prisma.doctor.findUnique({
         where: { phone_number: username },
       });
-    } else if (role === 'PATIENT') {
+      if (user) role = 'DOCTOR';
+    }
+
+    // 2) Patient bo‘lishi mumkin
+    if (!user) {
       user = await this.prisma.patient.findUnique({
         where: { phone_number: username },
       });
-    } else if (role === 'ADMIN' || role === 'SUPERADMIN') {
-      user = await this.prisma.admin.findUnique({ where: { username } });
+      if (user) role = 'PATIENT';
     }
 
+    // 3) Admin yoki SuperAdmin bo‘lishi mumkin
     if (!user) {
-      throw new NotFoundException(`${role} not found`);
+      user = await this.prisma.admin.findUnique({ where: { username } });
+      if (user) role = user.role; // DB’dan: 'ADMIN' | 'SUPERADMIN'
     }
 
+    // Foydalanuvchi topilmasa
+    if (!user) {
+      throw new UnauthorizedException('username or password incorrect');
+    }
+
+    // Parolni tekshirish
     const isMatch = await bcrypt.compare(password, user.hashed_password);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('username or password incorrect');
     }
 
-    const payload: IToken = { id: user.id, role: role };
+    // Tokenlar yaratish
+    const payload: IToken = { id: user.id, role };
     const accessToken = await this.jwt.accessToken(payload);
     const refreshToken = await this.jwt.refreshToken(payload);
 
-    return successRes({ accessToken, refreshToken });
+    // Cookie ga refresh token yozish
+    await this.jwt.writeCookie(
+      res,
+      'authKey',
+      refreshToken,
+      30
+    );
+
+    return successRes({ accessToken });
   }
 
   /**

@@ -56,14 +56,21 @@ export class AdminService
       where: { phone_number },
     });
     if (existsPhoneNumber)
-      throw new ConflictException(`uz: Telefon raqami allaqachon mavjud.
+      throw new ConflictException(`
+    uz: Telefon raqami allaqachon mavjud.
     en: Phone number already exists.
     ru: Номер телефона уже существует.`);
 
     const hashedPassword = await this.crypto.encrypt(createAdminDto.password);
 
     const newAdmin = await this.model.create({
-      data: { hashedPassword, ...createAdminDto },
+      data: {
+        username: createAdminDto.username,
+        phone_number: createAdminDto.phone_number,
+        hashed_password: hashedPassword,
+        role: createAdminDto.role,
+        is_active: createAdminDto.is_active ?? true,
+      },
     });
 
     return successRes(newAdmin, 201);
