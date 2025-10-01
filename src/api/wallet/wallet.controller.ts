@@ -6,37 +6,42 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
+import { GetRequestUser } from 'src/common/decorator/get-request-user.decorator';
+import type { IToken } from 'src/infrastructure/token/interface';
 
-@Controller('wallet')
+@Controller('wallets')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Post()
-  create(@Body() createWalletDto: CreateWalletDto) {
-    return this.walletService.create(createWalletDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.walletService.findAll();
+  create(
+    @GetRequestUser('user') user: IToken,
+    @Body() createWalletDto: CreateWalletDto,
+  ) {
+    return this.walletService.createWallet(createWalletDto, user);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.walletService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.walletService.findOneById(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWalletDto: UpdateWalletDto) {
-    return this.walletService.update(+id, updateWalletDto);
+  update(
+    @GetRequestUser('user') user: IToken,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateWalletDto: UpdateWalletDto,
+  ) {
+    return this.walletService.updateWallet(id, updateWalletDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.walletService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.walletService.delete(id);
   }
 }

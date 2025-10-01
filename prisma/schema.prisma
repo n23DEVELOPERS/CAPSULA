@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -81,7 +80,6 @@ model Doctor {
   service          Service[]
   book_doctor      Book_doctor[]
   chat             Chat[]
-  wallet           Wallet[]
 }
 
 model Patient {
@@ -98,7 +96,6 @@ model Patient {
 
   Book_doctor Book_doctor[]
   Chat        Chat[]
-  Wallet      Wallet[]
 }
 
 model Doctor_docs {
@@ -108,8 +105,8 @@ model Doctor_docs {
   certificate_url     String
   self_employment_url String
   image_url           String
-  doctorId            Int
-  doctor              Doctor  @relation(fields: [doctorId], references: [id])
+  doctor_id            Int
+  doctor              Doctor  @relation(fields: [doctor_id], references: [id])
   Image               Image[]
 }
 
@@ -127,8 +124,8 @@ model Doctor_book_time {
   start_time DateTime
   end_time   DateTime
   is_active  Boolean  @default(true)
-  doctorId   Int
-  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+  doctor_id   Int
+  doctor     Doctor   @relation(fields: [doctor_id], references: [id])
 }
 
 model Speciality {
@@ -136,8 +133,8 @@ model Speciality {
   name        String
   is_active   Boolean       @default(true)
   description String
-  doctorId    Int
-  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  doctor_id    Int
+  doctor      Doctor        @relation(fields: [doctor_id], references: [id])
   Book_doctor Book_doctor[]
 }
 
@@ -146,8 +143,8 @@ model Service {
   name        String
   price       Decimal
   description String
-  doctorId    Int
-  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  doctor_id    Int
+  doctor      Doctor        @relation(fields: [doctor_id], references: [id])
   Book_doctor Book_doctor[]
 }
 
@@ -167,8 +164,8 @@ model Book_doctor {
   patient_id Int
   patient    Patient @relation(fields: [patient_id], references: [id])
 
-  doctorId Int
-  doctor   Doctor @relation(fields: [doctorId], references: [id])
+  doctor_id Int
+  doctor   Doctor @relation(fields: [doctor_id], references: [id])
 
   Payment Payment[]
 }
@@ -204,13 +201,8 @@ model Wallet {
   name        String
   card_number String
   type        Wallet_type @default(HUMO)
-  date        DateTime    @default(now())
+  date        String
   cvv         Int
-  balence Int @default(0)
-
-  doctorId Int?
-  doctor   Doctor? @relation(fields: [doctorId], references: [id])
-
-  patientId Int?
-  patient   Patient? @relation(fields: [patientId], references: [id])
+  balence     Int         @default(0)
+  user_id Int?
 }

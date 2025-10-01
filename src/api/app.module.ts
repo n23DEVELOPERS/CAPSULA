@@ -5,10 +5,11 @@ import * as redisStore from 'cache-manager-redis-store';
 import { AuthModule } from './auth/auth.module';
 import { PatientModule } from './patient/patient.module';
 import { JwtModule } from '@nestjs/jwt';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
-    JwtModule.register({global: true}),
+    JwtModule.register({ global: true }),
     ConfigModule.forRoot({ isGlobal: true }),
 
     CacheModule.registerAsync({
@@ -25,7 +26,8 @@ import { JwtModule } from '@nestjs/jwt';
     }),
 
     AuthModule,
-    PatientModule
+    PatientModule,
+    WalletModule
   ],
 })
 export class AppModule {}

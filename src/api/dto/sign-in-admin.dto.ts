@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class SignInAdminDto {
   @IsNotEmpty()
   @IsString()
-  usernameOrPhone: string;
+  username: string;
 
   @IsNotEmpty()
   @IsString()

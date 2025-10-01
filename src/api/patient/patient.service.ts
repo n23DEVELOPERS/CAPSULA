@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { BaseService } from 'src/infrastructure/base/base.service';
@@ -21,7 +25,7 @@ export class PatientService extends BaseService<
   ) {
     super(prisma, prisma.patient, 'Patient not found');
   }
-  async createPatient(createPatientDto: CreatePatientDto) {
+  async registerPatient(createPatientDto: CreatePatientDto) {
     const { password, ...rest } = createPatientDto;
     const existsPhone = await this.prisma.patient.findUnique({
       where: { phone_number: createPatientDto.phone_number },
@@ -40,8 +44,8 @@ export class PatientService extends BaseService<
   }
 
   async updatePatient(id: number, updatePatientDto: UpdatePatientDto) {
-    const patient = await this.prisma.patient.findUnique({where: {id}});
-    if(!patient) throw new NotFoundException('Patient not found');
+    const patient = await this.prisma.patient.findUnique({ where: { id } });
+    if (!patient) throw new NotFoundException('Patient not found');
     const { password, ...rest } = updatePatientDto;
     let data: any = { ...rest };
     if (updatePatientDto.phone_number) {

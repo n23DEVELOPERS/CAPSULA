@@ -19,7 +19,7 @@ export class PatientController {
   @ApiProperty()
   @Post()
   create(@Body() createPatientDto: CreatePatientDto) {
-    return this.patientService.createPatient(createPatientDto);
+    return this.patientService.registerPatient(createPatientDto);
   }
 
   @ApiProperty()
