@@ -206,6 +206,7 @@ model Wallet {
   type        Wallet_type @default(HUMO)
   date        DateTime    @default(now())
   cvv         Int
+  balence Int @default(0)
 
   doctorId Int?
   doctor   Doctor? @relation(fields: [doctorId], references: [id])
