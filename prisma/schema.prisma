@@ -72,7 +72,7 @@ model Doctor {
   gender          Gender
   hashed_password String
   location        String
-  is_active       Boolean @default(true)
+  is_active       Boolean @default(false)
   role            Roles   @default(DOCTOR)
 
   speciality       Speciality[]
