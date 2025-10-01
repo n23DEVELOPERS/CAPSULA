@@ -9,6 +9,12 @@ import { TokenService } from 'src/infrastructure/token/Token';
 
 @Module({
   controllers: [AdminController],
-  providers: [AdminService, CryptoService, TokenService, JwtService, AuthService],
+  providers: [
+    AdminService,
+    CryptoService,
+    TokenService,
+    JwtService,
+    AuthService,
+  ],
 })
 export class AdminModule {}

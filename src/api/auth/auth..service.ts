@@ -39,8 +39,7 @@ export class AuthService {
   /**
    * Login (username/phone_number + password)
    */
-  async signIn(signinDto: SignInDto, res: Response) {
-    const { username, password } = signinDto;
+  async signIn(username: string, password: string, res: Response) {
     let user: any = null;
     let role: string = '';
 
@@ -83,12 +82,7 @@ export class AuthService {
     const refreshToken = await this.jwt.refreshToken(payload);
 
     // Cookie ga refresh token yozish
-    await this.jwt.writeCookie(
-      res,
-      'authKey',
-      refreshToken,
-      30
-    );
+    await this.jwt.writeCookie(res, 'authKey', refreshToken, 30);
 
     return successRes({ accessToken });
   }

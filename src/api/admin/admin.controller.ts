@@ -41,7 +41,7 @@ export class AdminController {
     @Body() signInDto: SignInDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.auth.signIn(signInDto, res);
+    return this.auth.signIn(signInDto.username, signInDto.password, res);
   }
 
   @ApiBearerAuth()

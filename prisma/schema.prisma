@@ -70,9 +70,8 @@ model Doctor {
   phone_number    String  @unique
   age             Int
   gender          Gender
-  hashed_password String
   location        String
-  is_active       Boolean @default(true)
+  is_active       Boolean @default(false)
   role            Roles   @default(DOCTOR)
 
   speciality       Speciality[]
