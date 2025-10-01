@@ -6,7 +6,7 @@ import { successRes } from '../response/success';
 @Injectable()
 export class BaseService<CreateDto, UpdateDto, Entity> {
   constructor(
-    private readonly prisma: PrismaService,
+    protected readonly prisma: PrismaService,
     private readonly model: any,
     private readonly notFoundMessage: string = 'Entity not found',
   ) {}
