@@ -204,7 +204,7 @@ model Wallet {
   name        String
   card_number String
   type        Wallet_type @default(HUMO)
-  date        DateTime    @default(now())
+  date        String
   cvv         Int
   balence Int @default(0)
 
