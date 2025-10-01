@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { CreateDoctorDto } from './dto/create-doctor.dto';
+import { CreateDoctorWithDocumentDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
 import { BaseService } from 'src/infrastructure/base/base.service';
 import { Doctor } from '@prisma/client';
@@ -20,7 +20,7 @@ import { Response } from 'express';
 
 @Injectable()
 export class DoctorService extends BaseService<
-  CreateDoctorDto,
+  CreateDoctorWithDocumentDto,
   UpdateDoctorDto,
   Doctor
 > {
@@ -31,7 +31,7 @@ export class DoctorService extends BaseService<
   ) {
     super(prisma, prisma.doctor, 'Doctor not found');
   }
-  async createDoctor(createDoctorDto: CreateDoctorDto) {
+  async createDoctor(createDoctorDto: CreateDoctorWithDocumentDto) {
     const doctor = await this.prisma.doctor.create({ data: createDoctorDto });
   }
 

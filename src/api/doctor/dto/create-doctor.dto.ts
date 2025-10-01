@@ -7,21 +7,23 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { Gender, Roles } from 'src/common/enum';
 
-export class CreateDoctorDto {
-  // @ApiProperty({
-  //   example: "mutahasislikning id'si",
-  // })
-  // @IsNumber()
-  // @IsNotEmpty()
-  // speciality: string;
+export class CreateDoctorWithDocumentDto {
+  // Doctor ma’lumotlari
+  @ApiProperty({
+    example: 'mutahasislik idsi',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  speciality: string;
 
   @ApiProperty({
-    example: "servicening id'si",
+    example: 'service idsi',
   })
-  @IsNumber()
+  @IsUUID()
   @IsOptional()
   services: string;
 
@@ -54,46 +56,69 @@ export class CreateDoctorDto {
   age: number;
 
   @ApiProperty({
-    example: Gender.MALE
+    example: Gender.MALE,
+    enum: Gender,
   })
   @IsEnum(Gender)
   @IsNotEmpty()
   gender: Gender;
 
   @ApiProperty({
-    example: "Tashkent, ..."
+    example: 'Tashkent, Uzbekistan',
   })
   @IsString()
   @IsNotEmpty()
   location: string;
 
+  @ApiProperty({
+    example: true,
+  })
   @IsBoolean()
   @IsOptional()
   is_active: boolean;
 
+  @ApiProperty({
+    example: Roles.DOCTOR,
+    enum: Roles,
+    default: Roles.DOCTOR,
+  })
   @IsEnum(Roles)
   @IsOptional()
-  role: Roles.DOCTOR;
+  role: Roles = Roles.DOCTOR;
 
-  // Doctor document uchun
+  // Doctor_document ma’lumotlari
+  @ApiProperty({
+    example: 'photo_url',
+  })
+  @IsString()
+  @IsNotEmpty()
+  passport_url: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // passport_url: string;
+  @ApiProperty({
+    example: 'photo_url',
+  })
+  @IsString()
+  @IsOptional()
+  diplom_url: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // diplom_url: string;
+  @ApiProperty({
+    example: 'photo_url',
+  })
+  @IsString()
+  @IsOptional()
+  certificate_url: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // certificate_url: string;
+  @ApiProperty({
+    example: 'photo_url',
+  })
+  @IsString()
+  @IsOptional()
+  self_employment_url: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // self_employment_url: string;
-
-  // @IsString()
-  // @IsNotEmpty()
-  // image_url: string;
+  @ApiProperty({
+    example: 'photo_url',
+  })
+  @IsString()
+  @IsOptional()
+  image_url: string;
 }
