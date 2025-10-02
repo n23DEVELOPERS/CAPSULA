@@ -6,6 +6,11 @@ import { AuthModule } from './auth/auth.module';
 import { PatientModule } from './patient/patient.module';
 import { JwtModule } from '@nestjs/jwt';
 import { WalletModule } from './wallet/wallet.module';
+import { RedisModule } from 'src/core/redis.module';
+import { ServiceModule } from './service/service.module';
+import { PaymentModule } from './payment/payment.module';
+import { SpecialityModule } from './speciality/speciality.module';
+import { BookDokctorModule } from './book_dokctor/book_dokctor.module';
 
 @Module({
   imports: [
@@ -27,7 +32,12 @@ import { WalletModule } from './wallet/wallet.module';
 
     AuthModule,
     PatientModule,
-    WalletModule
+    WalletModule,
+    RedisModule,
+    ServiceModule,
+    PaymentModule,
+    SpecialityModule,
+    BookDokctorModule
   ],
 })
 export class AppModule {}

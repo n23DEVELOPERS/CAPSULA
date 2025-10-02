@@ -30,7 +30,7 @@ export class AuthController {
     @Body() dto: SignInAdminDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.signInAdmin(dto.usernameOrPhone, dto.password, res);
+    return this.authService.signInAdmin(dto.username, dto.password, res);
   }
 
   @Post('refresh')
