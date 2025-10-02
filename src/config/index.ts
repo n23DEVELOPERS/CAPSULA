@@ -9,6 +9,8 @@ type ConfigType = {
   ADMIN_EMAIL: string;
   ADMIN_PASSWORD: string;
   ADMIN_PHONE_NUMBER: string;
+  FILE_PATH: string;
+  BASE_URL: string;
 
   TOKEN: {
     ACCESS_KEY: string;
@@ -37,4 +39,7 @@ export const config: ConfigType = {
     REFRESH_KEY: String(process.env.REFRESH_TOKEN_KEY),
     REFRESH_TIME: String(process.env.REFRESH_TOKEN_TIME),
   },
+
+  FILE_PATH: String(process.env.FILE_PATH),
+  BASE_URL: String(process.env.BASE_URL),
 };

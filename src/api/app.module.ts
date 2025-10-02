@@ -3,6 +3,7 @@ import { PrismaModule } from 'src/core/prisma/prisma.module';
 import { AdminModule } from './admin/admin.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -12,6 +13,11 @@ import { CacheModule } from '@nestjs/cache-manager';
     CacheModule.register({
       isGlobal: true,
       ttl: 5 * 1000 * 60,
+    }),
+
+    ServeStaticModule.forRoot({
+      rootPath: '/root/uploads',
+      serveRoot: '/api/v1/uploads',
     }),
   ],
 })

@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -7,7 +8,6 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
-  IsUUID,
 } from 'class-validator';
 import { Gender, Roles } from 'src/common/enum';
 
@@ -16,14 +16,15 @@ export class CreateDoctorWithDocumentDto {
   @ApiProperty({
     example: 'mutahasislik idsi',
   })
-  @IsUUID()
+  @Type(() => Number)
+  @IsNumber()
   @IsNotEmpty()
-  speciality: string;
+  speciality: number;
 
-  @ApiProperty({
-    example: 'service idsi',
-  })
-  @IsUUID()
+  // @ApiProperty({
+  //   example: 'service idsi',
+  // })
+  @IsNumber()
   @IsOptional()
   services: string;
 
@@ -51,6 +52,7 @@ export class CreateDoctorWithDocumentDto {
   @ApiProperty({
     example: 25,
   })
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   age: number;
@@ -87,38 +89,38 @@ export class CreateDoctorWithDocumentDto {
   role: Roles = Roles.DOCTOR;
 
   // Doctor_document ma’lumotlari
-  @ApiProperty({
-    example: 'photo_url',
-  })
-  @IsString()
-  @IsNotEmpty()
-  passport_url: string;
+  // @ApiProperty({
+  //   example: 'photo_url',
+  // })
+  // @IsString()
+  // @IsNotEmpty()
+  // passport_url: string;
 
-  @ApiProperty({
-    example: 'photo_url',
-  })
-  @IsString()
-  @IsOptional()
-  diplom_url: string;
+  // @ApiProperty({
+  //   example: 'photo_url',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // diplom_url: string;
 
-  @ApiProperty({
-    example: 'photo_url',
-  })
-  @IsString()
-  @IsOptional()
-  certificate_url: string;
+  // @ApiProperty({
+  //   example: 'photo_url',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // certificate_url: string;
 
-  @ApiProperty({
-    example: 'photo_url',
-  })
-  @IsString()
-  @IsOptional()
-  self_employment_url: string;
+  // @ApiProperty({
+  //   example: 'photo_url',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // self_employment_url: string;
 
-  @ApiProperty({
-    example: 'photo_url',
-  })
-  @IsString()
-  @IsOptional()
-  image_url: string;
+  // @ApiProperty({
+  //   example: 'photo_url',
+  // })
+  // @IsString()
+  // @IsOptional()
+  // image_url: string;
 }

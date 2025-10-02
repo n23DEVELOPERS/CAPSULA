@@ -102,11 +102,11 @@ model Patient {
 
 model Doctor_docs {
   id                  Int     @id @default(autoincrement())
-  passport_url        String
-  diplom_url          String
-  certificate_url     String
-  self_employment_url String
-  image_url           String
+  passport_url        String?
+  diplom_url          String?
+  certificate_url     String?
+  self_employment_url String?
+  image_url           String?
   doctorId            Int
   doctor              Doctor  @relation(fields: [doctorId], references: [id])
   Image               Image[]

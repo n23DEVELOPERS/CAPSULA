@@ -3,6 +3,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateDoctorWithDocumentDto } from './dto/create-doctor.dto';
 import { UpdateDoctorDto } from './dto/update-doctor.dto';
@@ -17,6 +18,7 @@ import { SignInOtpDto } from './dto/signin-otp.dto';
 import { TokenService } from 'src/infrastructure/token/Token';
 import { IToken } from 'src/infrastructure/token/interface';
 import { Response } from 'express';
+import { FileService } from 'src/infrastructure/file/file.service';
 
 @Injectable()
 export class DoctorService extends BaseService<
@@ -28,11 +30,83 @@ export class DoctorService extends BaseService<
     protected readonly prisma: PrismaService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly token: TokenService,
+    private readonly fileService: FileService,
   ) {
     super(prisma, prisma.doctor, 'Doctor not found');
   }
-  async createDoctor(createDoctorDto: CreateDoctorWithDocumentDto) {
-    const doctor = await this.prisma.doctor.create({ data: createDoctorDto });
+
+  async register(
+    createDoctorDto: CreateDoctorWithDocumentDto,
+    passportFiles: Express.Multer.File[] = [],
+    diplomFiles: Express.Multer.File[] = [],
+    certificateFiles: Express.Multer.File[] = [],
+    selfEmploymentFiles: Express.Multer.File[] = [],
+    imageFiles: Express.Multer.File[] = [],
+  ) {
+    const existsPhoneNumber = await this.prisma.doctor.findUnique({
+      where: { phone_number: createDoctorDto.phone_number },
+    });
+    if (existsPhoneNumber)
+      throw new ConflictException('Phone Number already exists');
+
+    return this.prisma.$transaction(async (manager) => {
+      const doctor = await manager.doctor.create({
+        data: {
+          first_name: createDoctorDto.first_name,
+          last_name: createDoctorDto.last_name,
+          age: createDoctorDto.age,
+          gender: createDoctorDto.gender,
+          phone_number: createDoctorDto.phone_number,
+          location: createDoctorDto.location,
+          speciality: {
+            connect: { id: createDoctorDto.speciality },
+          },
+        },
+      });
+
+      const passportUrls = await Promise.all(
+        passportFiles.map((f) => this.fileService.create(f)),
+      );
+      const diplomUrls = await Promise.all(
+        diplomFiles.map((f) => this.fileService.create(f)),
+      );
+      const certificateUrls = await Promise.all(
+        certificateFiles.map((f) => this.fileService.create(f)),
+      );
+      const selfEmploymentUrls = await Promise.all(
+        selfEmploymentFiles.map((f) => this.fileService.create(f)),
+      );
+      const imageUrls = await Promise.all(
+        imageFiles.map((f) => this.fileService.create(f)),
+      );
+
+      const doctorDocument = await manager.doctor_docs.create({
+        data: {
+          doctorId: doctor.id,
+          passport_url: passportUrls[0] || null,
+          diplom_url: diplomUrls[0] || null,
+          certificate_url: certificateUrls[0] || null,
+          self_employment_url: selfEmploymentUrls[0] || null,
+          image_url: imageUrls[0] || null,
+        },
+      });
+
+      if (imageUrls.length > 0) {
+        await manager.image.createMany({
+          data: imageUrls.map((url) => ({
+            doctor_docs_id: doctorDocument.id,
+            image_url: url,
+            name: url.split('/').pop() || 'image',
+          })),
+        });
+      }
+
+      return successRes({
+        doctor,
+        doctorDocument,
+        images: imageUrls,
+      });
+    });
   }
 
   async signInWithOtp(dto: SignInOtpDto) {
@@ -98,11 +172,119 @@ export class DoctorService extends BaseService<
     });
   }
 
-  updateDoctor(id: number, updateDoctorDto: UpdateDoctorDto) {
-    return `This action updates a #${id} doctor`;
+  async updateDoctor(
+    id: number,
+    updateDoctorDto: UpdateDoctorDto,
+    files?: {
+      passport_url?: Express.Multer.File[];
+      diplom_url?: Express.Multer.File[];
+      certificate_url?: Express.Multer.File[];
+      self_employment_url?: Express.Multer.File[];
+      image_url?: Express.Multer.File[];
+    },
+  ) {
+    return this.prisma.$transaction(async (manager) => {
+      const doctor = await manager.doctor.findUnique({
+        where: { id },
+        include: { doctor_docs: true },
+      });
+
+      if (!doctor) throw new NotFoundException('Doctor not found');
+
+      const doctorDoc = doctor.doctor_docs[0]; // faqat bitta hujjat ishlatyapsiz
+      if (!doctorDoc) throw new NotFoundException('Doctor docs not found');
+
+      // Fayllar bo‘yicha update qilish
+      let passportUrl = doctorDoc.passport_url;
+      let diplomUrl = doctorDoc.diplom_url;
+      let certificateUrl = doctorDoc.certificate_url;
+      let selfEmploymentUrl = doctorDoc.self_employment_url;
+      let imageUrl = doctorDoc.image_url;
+
+      if (files?.passport_url?.[0]) {
+        if (passportUrl) await this.fileService.delete(passportUrl);
+        passportUrl = await this.fileService.create(files.passport_url[0]);
+      }
+
+      if (files?.diplom_url?.[0]) {
+        if (diplomUrl) await this.fileService.delete(diplomUrl);
+        diplomUrl = await this.fileService.create(files.diplom_url[0]);
+      }
+
+      if (files?.certificate_url?.[0]) {
+        if (certificateUrl) await this.fileService.delete(certificateUrl);
+        certificateUrl = await this.fileService.create(
+          files.certificate_url[0],
+        );
+      }
+
+      if (files?.self_employment_url?.[0]) {
+        if (selfEmploymentUrl) await this.fileService.delete(selfEmploymentUrl);
+        selfEmploymentUrl = await this.fileService.create(
+          files.self_employment_url[0],
+        );
+      }
+
+      if (files?.image_url?.[0]) {
+        if (imageUrl) await this.fileService.delete(imageUrl);
+        imageUrl = await this.fileService.create(files.image_url[0]);
+      }
+
+      const { speciality, ...restDto } = updateDoctorDto;
+
+      const updatedDoctor = await manager.doctor.update({
+        where: { id },
+        data: {
+          ...restDto,
+          doctor_docs: {
+            updateMany: {
+              where: { id: doctor.doctor_docs[0].id },
+              data: {
+                passport_url: passportUrl,
+                diplom_url: diplomUrl,
+                certificate_url: certificateUrl,
+                self_employment_url: selfEmploymentUrl,
+                image_url: imageUrl,
+              },
+            },
+          },
+        },
+        include: { doctor_docs: true },
+      });
+
+      return successRes(updatedDoctor);
+    });
   }
 
-  deleteDoctor(id: number) {
-    return `This action removes a #${id} doctor`;
+  async deleteDoctor(id: number) {
+    return this.prisma.$transaction(async (manager) => {
+      const doctor = await manager.doctor.findUnique({
+        where: { id },
+        include: { doctor_docs: true },
+      });
+
+      if (!doctor) throw new NotFoundException('Doctor not found');
+
+      // Fayllarni diskdan o‘chirish
+      for (const doc of doctor.doctor_docs) {
+        if (doc.passport_url) await this.fileService.delete(doc.passport_url);
+        if (doc.diplom_url) await this.fileService.delete(doc.diplom_url);
+        if (doc.certificate_url)
+          await this.fileService.delete(doc.certificate_url);
+        if (doc.self_employment_url)
+          await this.fileService.delete(doc.self_employment_url);
+        if (doc.image_url) await this.fileService.delete(doc.image_url);
+
+        // doctor_docsni DBdan o‘chirish
+        await manager.doctor_docs.delete({
+          where: { id: doc.id },
+        });
+      }
+
+      // Doctorni o‘chirish
+      await manager.doctor.delete({ where: { id } });
+
+      return successRes({ message: 'Doctor deleted successfully' });
+    });
   }
 }
