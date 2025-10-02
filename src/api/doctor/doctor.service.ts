@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -58,9 +59,9 @@ export class DoctorService extends BaseService<
           gender: createDoctorDto.gender,
           phone_number: createDoctorDto.phone_number,
           location: createDoctorDto.location,
-          speciality: {
-            connect: { id: createDoctorDto.speciality },
-          },
+          // speciality: {
+          //   connect: { id: createDoctorDto.speciality },
+          // },
         },
       });
 
@@ -114,6 +115,13 @@ export class DoctorService extends BaseService<
     const existsPhoneNumber = await this.prisma.doctor.findUnique({
       where: { phone_number },
     });
+    if (existsPhoneNumber && !existsPhoneNumber.is_active) {
+      throw new ForbiddenException(`
+    uz: Sizning arizangiz hali tasdiqlanmagan.
+    en: Your application has not been approved yet.
+    ru: Ваша заявка ещё не подтверждена.
+  `);
+    }
 
     if (!existsPhoneNumber)
       throw new ConflictException(`

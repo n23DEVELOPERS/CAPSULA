@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { BaseService } from 'src/infrastructure/base/base.service';
@@ -76,5 +81,84 @@ export class AdminService
     return successRes(newAdmin, 201);
   }
 
-  updateAdmin(id: number, updateAdminDto: UpdateAdminDto) {}
+  async updateAdmin(id: number, updateAdminDto: UpdateAdminDto) {
+    const { username, phone_number } = updateAdminDto;
+    if (username) {
+      const existsUsername = await this.prisma.admin.findUnique({
+        where: { username },
+      });
+      if (existsUsername && existsUsername.id !== id)
+        throw new ConflictException(`uz: Username allaqachon mavjud.
+    en: Username already exists.
+    ru: Имя пользователя уже существует.`);
+    }
+
+    if (phone_number) {
+      const existsPhoneNumber = await this.prisma.admin.findUnique({
+        where: { phone_number },
+      });
+
+      if (existsPhoneNumber && existsPhoneNumber.id !== id)
+        throw new ConflictException(`
+    uz: Telefon raqami allaqachon mavjud.
+    en: Phone number already exists.
+    ru: Номер телефона уже существует.`);
+    }
+
+    if (updateAdminDto.password) {
+      updateAdminDto.password = await this.crypto.encrypt(
+        updateAdminDto.password,
+      );
+    }
+
+    const admin = await this.prisma.admin.update({
+      where: { id },
+      data: updateAdminDto,
+    });
+
+    return successRes(admin);
+  }
+
+  async verifyApplication(id: number, isVerified: boolean) {
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { id },
+    });
+
+    if (!doctor)
+      throw new NotFoundException({
+        uz: 'Doctor topilmadi.',
+        en: 'Doctor not found.',
+        ru: 'Доктор не найден.',
+      });
+
+    const verified = Boolean(isVerified);
+
+    if (!verified) {
+      await this.prisma.doctor.update({
+        where: { id },
+        data: { is_delete: true },
+      });
+
+      return successRes({
+        message: {
+          uz: 'Ariza tasdiqlanmadi (o`chirildi).',
+          en: 'Application not verified (deleted).',
+          ru: 'Заявка не подтверждена (удалена).',
+        },
+      });
+    }
+
+    await this.prisma.doctor.update({
+      where: { id },
+      data: { is_active: true },
+    });
+
+    return successRes({
+      message: {
+        uz: 'Ariza tasdiqlandi',
+        en: 'Application verified',
+        ru: 'Заявка подтверждена',
+      },
+    });
+  }
 }

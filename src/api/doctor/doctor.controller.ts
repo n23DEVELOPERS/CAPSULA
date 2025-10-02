@@ -28,11 +28,8 @@ import { Roles } from 'src/common/enum';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/role.guard';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
-import { diskStorage, memoryStorage } from 'multer';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('doctor')
 export class DoctorController {
@@ -111,7 +108,9 @@ export class DoctorController {
   @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
   @Get()
   findAll() {
-    return this.doctorService.findAll({ where: { is_active: true } });
+    return this.doctorService.findAll({
+      where: { is_active: true, is_delete: false },
+    });
   }
 
   @ApiBearerAuth()

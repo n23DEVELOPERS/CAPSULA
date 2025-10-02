@@ -19,13 +19,16 @@ import { Roles } from 'src/common/enum';
 import { SignInDto } from './dto/signin.dto';
 import { AuthService } from '../auth/auth..service';
 import type { Response } from 'express';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { PrismaService } from 'src/core/prisma/prisma.service';
+import { VerifyApplicationDto } from './dto/verify-application.dto';
 
 @Controller('admin')
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly auth: AuthService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @ApiBearerAuth()
@@ -52,6 +55,26 @@ export class AdminController {
     return this.adminService.findAll();
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
+  @Get('applications')
+  findAllApplications() {
+    return this.prisma.doctor.findMany({
+      where: { is_active: false, is_delete: false },
+    });
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
+  @Patch('verify-application/:id')
+  verifyApplication(
+    @Param('id') id: number,
+    @Body() body: VerifyApplicationDto,
+  ) {
+    return this.adminService.verifyApplication(id, body.isVerified);
+  }
   @ApiBearerAuth()
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(Roles.SUPERADMIN, 'ID')

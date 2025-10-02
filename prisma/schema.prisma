@@ -71,6 +71,7 @@ model Doctor {
   age             Int
   gender          Gender
   location        String
+  is_delete       Boolean @default(false)
   is_active       Boolean @default(false)
   role            Roles   @default(DOCTOR)
 
