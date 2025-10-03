@@ -30,9 +30,6 @@ export class CreateBookDoctorDto {
   @IsOptional()
   location?: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  amount: number; //  shu qo‘shildi
 
   @IsString()
   @IsOptional()

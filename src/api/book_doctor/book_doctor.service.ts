@@ -4,24 +4,24 @@ import { UpdateBookDoctorDto } from './dto/update-book_doctor.dto';
 import { BaseService } from 'src/infrastructure/base/base.service';
 import { Book_doctor, Status } from '@prisma/client';
 import { PrismaService } from 'src/core/prisma/prisma.service';
-import { PrismaClient } from '@prisma/client';
+import { RescheduleBookingDto } from './dto/reschedule-book_doctor.dto';
+import { CancelBookingDto } from './dto/cancel-book_doctor.dto';
 
 @Injectable()
 export class BookDoctorService extends BaseService<CreateBookDoctorDto, UpdateBookDoctorDto, Book_doctor> {
-  constructor(
-    protected prisma: PrismaService
-  ) {
-    super(prisma, prisma.book_doctor, 'book_doktor not fount')
+  constructor(protected prisma: PrismaService) {
+    super(prisma, prisma.book_doctor, 'book_doctor not found');
   }
-
 
   async checkExists(model: any, id: number, name: string) {
     const record = await model.findUnique({ where: { id } });
     if (!record) {
-      throw new NotFoundException(`${ name } not found`);
+      throw new NotFoundException(`${name} not found`);
     }
   }
 
+ 
+  // Yangi booking va payment yaratish
   async createBookingWithPayment(dto: CreateBookDoctorDto) {
     return this.prisma.$transaction(async (tx) => {
       // Doctor mavjudligini tekshirish
@@ -36,25 +36,32 @@ export class BookDoctorService extends BaseService<CreateBookDoctorDto, UpdateBo
       });
       if (!patient) throw new NotFoundException('Patient not found');
 
+      // Service va price olish
+      const service = await tx.service.findUnique({
+        where: { id: dto.service_id },
+      });
+      if (!service) throw new NotFoundException('Service not found');
+
+      const price = Number(service.price);
+
       // Patient walletini olish
-      const patientWallet = await tx.wallet.findUnique({
+      const patientWallet = await tx.wallet.findFirst({
         where: { patientId: dto.patient_id },
       });
       if (!patientWallet) throw new NotFoundException('Patient wallet not found');
 
       // Doctor walletini olish
-      const doctorWallet = await tx.wallet.findUnique({
+      const doctorWallet = await tx.wallet.findFirst({
         where: { doctorId: dto.doctorId },
       });
       if (!doctorWallet) throw new NotFoundException('Doctor wallet not found');
 
       // Balans tekshirish
-      if (patientWallet.balence < dto.amount) {
+      if (patientWallet.balence < price) {
         throw new BadRequestException('Not enough balance in patient wallet');
       }
 
-
-      // Booking yozuvi yaratish
+      // Booking yozuvi yaratish (pending)
       const booking = await tx.book_doctor.create({
         data: {
           service_id: dto.service_id,
@@ -62,28 +69,22 @@ export class BookDoctorService extends BaseService<CreateBookDoctorDto, UpdateBo
           speciality_id: dto.speciality_id,
           patient_id: dto.patient_id,
           book_date: new Date(dto.book_date),
-          status: Status.SUCCESS,
+          status: Status.PENDING,
           is_active: true,
           location: dto.location ?? '',
-          amount: dto.amount
         },
       });
 
-
-      //  Patient balansidan ayirish
+      // Patient balansidan ayirish
       await tx.wallet.update({
         where: { id: patientWallet.id },
-        data: {
-          balence: { decrement: dto.amount },
-        },
+        data: { balence: { decrement: price } },
       });
 
-      //  Doctor balansiga qo‘shish
+      // Doctor balansiga qo‘shish
       await tx.wallet.update({
         where: { id: doctorWallet.id },
-        data: {
-          balence: { increment: dto.amount },
-        },
+        data: { balence: { increment: price } },
       });
 
       // Payment yozuvi yaratish
@@ -93,68 +94,75 @@ export class BookDoctorService extends BaseService<CreateBookDoctorDto, UpdateBo
           status: Status.SUCCESS,
           patient_name: patient.first_name,
           doctor_name: doctor.first_name,
-          // payment_type: dto.payment_type,
           meeting_date: new Date(dto.book_date),
           description: dto.description ?? '',
         },
       });
 
-      return { booking, payment };
+      // Booking statusni update qilish
+      const updatedBooking = await tx.book_doctor.update({
+        where: { id: booking.id },
+        data: { status: Status.SUCCESS },
+      });
+
+      return { booking: updatedBooking, payment };
     });
   }
 
-  async cancelBooking(bookingId: number, patientId: number) {
+
+  // Bookingni bekor qilish
+  async cancelBooking(dto: CancelBookingDto) {
+    const { bookingId, patientId } = dto;
+
     return this.prisma.$transaction(async (tx) => {
-      // 1. Bookingni topamiz
+      // Bookingni topish
       const booking = await tx.book_doctor.findUnique({
         where: { id: bookingId },
         include: {
           patient: { include: { Wallet: true } },
           doctor: { include: { wallet: true } },
+          service: true,
         },
       });
 
-      if (!booking) throw new Error('Booking topilmadi');
-      if (booking.patient_id !== patientId) throw new Error('Ruxsat yoq');
+      if (!booking) throw new NotFoundException('Booking not found');
+      if (booking.patient_id !== patientId) throw new BadRequestException('Ruxsat yo‘q');
 
-      //  Bekor qilish vaqtini hisoblash
+      // Bekor qilish vaqtini hisoblash
       const now = new Date();
       const diffHours =
         (booking.book_date.getTime() - now.getTime()) / (1000 * 60 * 60);
-      //  Refund policy
+
+      // Refund policy
       let refundPercent = 0;
       if (diffHours >= 24) refundPercent = 100;
       else if (diffHours >= 6) refundPercent = 50;
       else if (diffHours >= 1) refundPercent = 20;
       else refundPercent = 0;
 
-      // To‘lanadigan miqdor
-      const amount = booking.amount; // booking yaratishda saqlab qo‘yilgan bo‘lishi kerak
-      const refundAmount = Math.floor((amount * refundPercent) / 100);
+      const price = Number(booking.service.price);
+      const refundAmount = Math.floor((price * refundPercent) / 100);
 
-      //  Walletlarda balansni o‘zgartirish
+      // Walletlarni yangilash
       if (refundAmount > 0) {
         await tx.wallet.update({
-          where: { id: booking.doctor.wallet[0].id }, // birinchi walletni olish
+          where: { id: booking.doctor.wallet[0].id },
           data: { balence: { decrement: refundAmount } },
         });
 
         await tx.wallet.update({
-          where: { id: booking.patient.Wallet[0].id }, // birinchi walletni olish
+          where: { id: booking.patient.Wallet[0].id },
           data: { balence: { increment: refundAmount } },
         });
       }
 
-      // 5. Booking statusini yangilash
+      // Booking statusini yangilash
       await tx.book_doctor.update({
         where: { id: bookingId },
-        data: {
-          status: Status.CANCELLED,
-          is_active: false,
-        },
+        data: { status: Status.CANCELLED, is_active: false },
       });
 
-      // 6. Payment yozuvini yangilash
+      // Payment update qilish
       await tx.payment.updateMany({
         where: { book_doctor_id: bookingId },
         data: {
@@ -162,17 +170,93 @@ export class BookDoctorService extends BaseService<CreateBookDoctorDto, UpdateBo
             refundPercent === 100
               ? Status.SUCCESS
               : refundPercent > 0
-                ? Status.PARTIAL_REFUND
-                : Status.NOT_REFUNDABLE,
-          description: `Bekor qilindi.Refund: ${ refundPercent } %`,
+              ? Status.PARTIAL_REFUND
+              : Status.NOT_REFUNDABLE,
+          description: `Bekor qilindi. Refund: ${refundPercent}%`,
         },
       });
 
       return {
-  message: `Booking bekor qilindi.Refund ${ refundPercent }%`,
-    refundAmount,
+        message: `Booking bekor qilindi. Refund ${refundPercent}%`,
+        refundAmount,
       };
     });
   }
 
+  
+  // Bookingni boshqa sanaga o‘tkazish (reschedule)
+  
+  async rescheduleBooking(dto: RescheduleBookingDto) {
+    const { bookingId, patientId, newDate } = dto;
+
+    return this.prisma.$transaction(async (tx) => {
+      const booking = await tx.book_doctor.findUnique({
+        where: { id: bookingId },
+        include: {
+          patient: { include: { Wallet: true } },
+          doctor: { include: { wallet: true } },
+          service: true,
+        },
+      });
+      if (!booking) throw new NotFoundException('Booking not found');
+
+      if (booking.patient_id !== patientId) {
+        throw new BadRequestException('Ruxsat yo‘q');
+      }
+
+      const patientWallet = booking.patient.Wallet[0];
+      const doctorWallet = booking.doctor.wallet[0];
+      if (!patientWallet) throw new NotFoundException('Patient wallet not found');
+      if (!doctorWallet) throw new NotFoundException('Doctor wallet not found');
+
+      const now = new Date();
+      const hoursLeft =
+        (booking.book_date.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      let fee = 0;
+      const price = Number(booking.service.price);
+
+      // Reschedule fee policy
+      if (hoursLeft < 3) {
+        fee = Math.floor(price * 0.15); // 15% fee
+        if (patientWallet.balence < fee) {
+          throw new BadRequestException('Not enough balance to reschedule');
+        }
+
+        await tx.wallet.update({
+          where: { id: patientWallet.id },
+          data: { balence: { decrement: fee } },
+        });
+        await tx.wallet.update({
+          where: { id: doctorWallet.id },
+          data: { balence: { increment: fee } },
+        });
+
+        await tx.payment.create({
+          data: {
+            book_doctor_id: booking.id,
+            status: Status.SUCCESS,
+            patient_name: booking.patient.first_name,
+            doctor_name: booking.doctor.first_name,
+            meeting_date: newDate,
+            description: `Reschedule fee: ${fee}`,
+          },
+        });
+      }
+
+      // Sana yangilash
+      const updatedBooking = await tx.book_doctor.update({
+        where: { id: bookingId },
+        data: { book_date: newDate },
+      });
+
+      return {
+        message: `Booking rescheduled successfully${
+          fee > 0 ? ` with fee ${fee}` : ''
+        }`,
+        booking: updatedBooking,
+        feeCharged: fee,
+      };
+    });
+  }
 }
