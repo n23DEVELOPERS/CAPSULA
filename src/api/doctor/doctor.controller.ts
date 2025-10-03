@@ -30,6 +30,7 @@ import { RolesGuard } from 'src/common/guard/role.guard';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { SigninDtoDoctor } from './dto/signin.dto';
 
 @Controller('doctor')
 export class DoctorController {
@@ -90,9 +91,9 @@ export class DoctorController {
     );
   }
 
-  @Post('signin')
-  signIn(@Body() dto: SignInOtpDto) {
-    return this.doctorService.signInWithOtp(dto);
+  @Post('register-otp')
+  registerWithOtp(@Body() dto: SignInOtpDto) {
+    return this.doctorService.registerWithOtp(dto);
   }
 
   @Post('verify-otp')
@@ -101,6 +102,14 @@ export class DoctorController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.doctorService.verifyOtp(dto, res);
+  }
+
+  @Post('signin')
+  signIn(
+    @Body() signinDto: SigninDtoDoctor,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.doctorService.signin(signinDto, res);
   }
 
   @ApiBearerAuth()

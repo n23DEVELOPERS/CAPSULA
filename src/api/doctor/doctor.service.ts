@@ -20,6 +20,8 @@ import { TokenService } from 'src/infrastructure/token/Token';
 import { IToken } from 'src/infrastructure/token/interface';
 import { Response } from 'express';
 import { FileService } from 'src/infrastructure/file/file.service';
+import { SigninDtoDoctor } from './dto/signin.dto';
+import { CryptoService } from 'src/infrastructure/crypt/Crypto';
 
 @Injectable()
 export class DoctorService extends BaseService<
@@ -32,6 +34,7 @@ export class DoctorService extends BaseService<
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly token: TokenService,
     private readonly fileService: FileService,
+    private readonly crypto: CryptoService,
   ) {
     super(prisma, prisma.doctor, 'Doctor not found');
   }
@@ -110,7 +113,7 @@ export class DoctorService extends BaseService<
     });
   }
 
-  async signInWithOtp(dto: SignInOtpDto) {
+  async registerWithOtp(dto: SignInOtpDto) {
     const { phone_number } = dto;
     const existsPhoneNumber = await this.prisma.doctor.findUnique({
       where: { phone_number },
@@ -177,6 +180,48 @@ export class DoctorService extends BaseService<
         accessToken,
         refreshToken,
       },
+    });
+  }
+
+  async signin(signinDto: SigninDtoDoctor, res: Response) {
+    const { phone_number, password } = signinDto;
+
+    const doctor = await this.prisma.doctor.findUnique({
+      where: { phone_number },
+    });
+
+    if (!doctor) {
+      throw new BadRequestException(`
+    uz: Telefon raqami yoki parol noto'g'ri.
+    en: Phone number or password is incorrect.
+    ru: Номер телефона или пароль неверны.
+  `);
+    }
+
+    const isMatch = await this.crypto.decrypt(
+      password,
+      doctor.hashed_password || '',
+    );
+
+    if (!isMatch) {
+      throw new BadRequestException(`
+    uz: Telefon raqami yoki parol noto'g'ri.
+    en: Phone number or password is incorrect.
+    ru: Номер телефона или пароль неверны.
+  `);
+    }
+
+    const payload: IToken = {
+      id: doctor.id,
+      role: doctor.role,
+    };
+
+    const accessToken = await this.token.accessToken(payload);
+    const refreshToken = await this.token.refreshToken(payload);
+    await this.token.writeCookie(res, 'doctorToken', refreshToken, 30);
+    return successRes({
+      accessToken,
+      refreshToken,
     });
   }
 

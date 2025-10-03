@@ -74,6 +74,7 @@ model Doctor {
   is_delete       Boolean @default(false)
   is_active       Boolean @default(false)
   role            Roles   @default(DOCTOR)
+  hashed_password String?
 
   speciality       Speciality[]
   doctor_docs      Doctor_docs[]
