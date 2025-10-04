@@ -30,8 +30,7 @@ export class TokenService {
   ): Promise<void> {
     res.cookie(key, value, {
       httpOnly: true,
-      secure: true,
-      maxAge: Number(time) * 60 * 60 * 1000,
+      maxAge: Number(time) * 60 * 1000,
     });
   }
 

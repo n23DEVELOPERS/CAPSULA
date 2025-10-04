@@ -1,13 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
 
 export class SignInUserDto {
   @ApiProperty({ example: '+998901234567' })
   @IsNotEmpty()
-  @IsPhoneNumber('UZ')
+  @IsString()
   phone_number: string;
 
+  @ApiProperty({ example: 'AliV123!' })
   @IsNotEmpty()
-  @IsString()
+  @IsStrongPassword()
   password: string;
 }
