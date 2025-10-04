@@ -33,7 +33,7 @@ export class PatientService extends BaseService<
     private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
     @Inject('REDIS_CLIENT') private redis: RedisClientType,
-    private readonly otpService: OTPService
+    private readonly otpService: OTPService,
   ) {
     super(prisma, prisma.patient, 'Patient not found');
   }
@@ -44,7 +44,11 @@ export class PatientService extends BaseService<
     if (exists) {
       throw new ConflictException('Phone number already registered');
     }
-    const otp = this.otpService.sendOtp(`register:${createPatientDto.phone_number}`, 5, { ...createPatientDto });
+    const otp = this.otpService.sendOtp(
+      `register:${createPatientDto.phone_number}`,
+      5,
+      { ...createPatientDto },
+    );
     return successRes({
       message: `OTP sent to ${createPatientDto.phone_number}: ${otp}`,
     });
@@ -75,28 +79,30 @@ export class PatientService extends BaseService<
   }
 
   async forgetPassword(dto: ForgetPassDto) {
-    const {phone_number} = dto;
+    const { phone_number } = dto;
     const patient = await this.prisma.patient.findUnique({
       where: { phone_number },
     });
     if (!patient) {
-      throw new NotFoundException("Patient not found");
+      throw new NotFoundException('Patient not found');
     }
-    const otp = this.otpService.sendOtp(`forgetPass:${phone_number}`, 5, { });
+    const otp = this.otpService.sendOtp(`forgetPass:${phone_number}`, 5, {});
     return successRes({
       message: `OTP sent to ${phone_number}: ${otp}`,
     });
   }
 
   async confirmOtp(dto: VerifyOtpDto) {
-    const {phone_number, code} = dto;
+    const { phone_number, code } = dto;
     const patient = await this.prisma.patient.findUnique({
       where: { phone_number },
     });
     if (!patient) {
-      throw new NotFoundException("Patient not found");
+      throw new NotFoundException('Patient not found');
     }
-    const dataStr: any = this.otpService.verifyOtp(`forgetPass:${phone_number}`);
+    const dataStr: any = this.otpService.verifyOtp(
+      `forgetPass:${phone_number}`,
+    );
     if (dataStr === null || !dataStr) {
       throw new UnauthorizedException('OTP expired or not requested');
     }
@@ -109,7 +115,9 @@ export class PatientService extends BaseService<
   }
 
   async resetPassword(dto: SignInUserDto) {
-    const patient = await this.prisma.patient.findUnique({ where: { phone_number: dto.phone_number } });
+    const patient = await this.prisma.patient.findUnique({
+      where: { phone_number: dto.phone_number },
+    });
     if (!patient) {
       throw new NotFoundException('Patient not found');
     }
@@ -121,7 +129,9 @@ export class PatientService extends BaseService<
 
   async signIn(signInDto: SignInUserDto, res: Response) {
     const { phone_number, password } = signInDto;
-    const patient = await this.prisma.patient.findUnique({ where: { phone_number } });
+    const patient = await this.prisma.patient.findUnique({
+      where: { phone_number },
+    });
     const isMatchPassword = await this.crypto.decrypt(
       password,
       patient?.hashed_password || '',
@@ -147,7 +157,7 @@ export class PatientService extends BaseService<
     let data: any = { ...rest };
     if (data.phone_number) {
       const existsPhone = await this.prisma.patient.findUnique({
-        where: { phone_number: data.phone_number }
+        where: { phone_number: data.phone_number },
       });
       if (existsPhone && existsPhone.id != id) {
         throw new ConflictException('Phone number already exists');

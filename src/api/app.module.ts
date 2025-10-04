@@ -37,7 +37,7 @@ import { BookDokctorModule } from './book_dokctor/book_dokctor.module';
     ServiceModule,
     PaymentModule,
     SpecialityModule,
-    BookDokctorModule
+    BookDokctorModule,
   ],
 })
 export class AppModule {}

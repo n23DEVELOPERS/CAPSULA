@@ -7,11 +7,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth..service';
-import { SignInUserDto } from 'src/api/dto/sign-in-user.dto';
-import { SignInAdminDto } from 'src/api/dto/sign-in-admin.dto';
+import { SignInUserDto } from 'src/common/dto/sign-in-user.dto';
+import { SignInAdminDto } from 'src/common/dto/sign-in-admin.dto';
 import type { Response, Request } from 'express';
-import { SendOtpDto } from '../dto/send-otp.dto';
-import { VerifyOtpDto } from '../dto/verify-otp.dto';
 
 @Controller('auth')
 export class AuthController {
