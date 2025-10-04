@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -99,6 +98,7 @@ model Patient {
   Book_doctor Book_doctor[]
   Chat        Chat[]
   Wallet      Wallet[]
+  AiChat      AiChat[]        // 🔥 yangi qo‘shildi
 }
 
 model Doctor_docs {
@@ -206,11 +206,21 @@ model Wallet {
   type        Wallet_type @default(HUMO)
   date        String
   cvv         Int
-  balence Int @default(0)
+  balence     Int @default(0)
 
   doctorId Int?
   doctor   Doctor? @relation(fields: [doctorId], references: [id])
 
   patientId Int?
   patient   Patient? @relation(fields: [patientId], references: [id])
+}
+
+// YANGI MODEL
+model AiChat {
+  id         Int      @id @default(autoincrement())
+  patient_id Int
+  patient    Patient  @relation(fields: [patient_id], references: [id])
+  question   String
+  answer     String
+  createdAt  DateTime @default(now())
 }
