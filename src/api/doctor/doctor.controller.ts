@@ -31,10 +31,15 @@ import { AccessRoles } from 'src/common/decorator/roles.decorator';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { SigninDtoDoctor } from './dto/signin.dto';
+import { CookieGetter } from 'src/common/decorator/cookie-getter.decorator';
+import { AuthService } from '../auth/auth..service';
 
 @Controller('doctor')
 export class DoctorController {
-  constructor(private readonly doctorService: DoctorService) {}
+  constructor(
+    private readonly doctorService: DoctorService,
+    private readonly auth: AuthService,
+  ) {}
 
   @ApiOperation({ summary: 'Register doctor' })
   @ApiConsumes('multipart/form-data')
@@ -110,6 +115,25 @@ export class DoctorController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.doctorService.signin(signinDto, res);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.DOCTOR)
+  @ApiBearerAuth()
+  @Post('new-token')
+  newToken(@CookieGetter('authKey') token: string) {
+    return this.auth.newToken(token);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.DOCTOR)
+  @ApiBearerAuth()
+  @Post('signout')
+  signOut(
+    @CookieGetter('authKey') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.signOut(token, res, 'authKey');
   }
 
   @ApiBearerAuth()

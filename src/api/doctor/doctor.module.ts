@@ -5,6 +5,7 @@ import { TokenService } from 'src/infrastructure/token/Token';
 import { JwtService } from '@nestjs/jwt';
 import { FileService } from 'src/infrastructure/file/file.service';
 import { CryptoService } from 'src/infrastructure/crypt/Crypto';
+import { AuthService } from '../auth/auth..service';
 
 @Module({
   controllers: [DoctorController],
@@ -14,6 +15,7 @@ import { CryptoService } from 'src/infrastructure/crypt/Crypto';
     JwtService,
     FileService,
     CryptoService,
+    AuthService,
   ],
 })
 export class DoctorModule {}

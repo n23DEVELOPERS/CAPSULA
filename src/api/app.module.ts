@@ -4,6 +4,8 @@ import { AdminModule } from './admin/admin.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
+import { CleanupService } from './admin/cron/clear.doctor.service';
 
 @Module({
   imports: [
@@ -19,6 +21,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       rootPath: '/root/uploads',
       serveRoot: '/api/v1/uploads',
     }),
+
+    ScheduleModule.forRoot(),
   ],
+
+  providers: [CleanupService],
 })
 export class AppModule {}

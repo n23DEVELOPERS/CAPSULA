@@ -22,6 +22,8 @@ import type { Response } from 'express';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { VerifyApplicationDto } from './dto/verify-application.dto';
+import { CookieGetter } from 'src/common/decorator/cookie-getter.decorator';
+import { stringify } from 'querystring';
 
 @Controller('admin')
 export class AdminController {
@@ -45,6 +47,25 @@ export class AdminController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.auth.signIn(signInDto.username, signInDto.password, res);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.ADMIN, Roles.SUPERADMIN)
+  @ApiBearerAuth()
+  @Post('new-token')
+  newToken(@CookieGetter('authKey') token: string) {
+    return this.auth.newToken(token);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.ADMIN, Roles.SUPERADMIN)
+  @ApiBearerAuth()
+  @Post('signout')
+  signOut(
+    @CookieGetter('authKey') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.signOut(token, res, 'authKey');
   }
 
   @ApiBearerAuth()

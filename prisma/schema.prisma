@@ -110,7 +110,7 @@ model Doctor_docs {
   self_employment_url String?
   image_url           String?
   doctorId            Int
-  doctor              Doctor  @relation(fields: [doctorId], references: [id])
+  doctor              Doctor  @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   Image               Image[]
 }
 
@@ -119,7 +119,7 @@ model Image {
   image_url      String
   name           String
   doctor_docs_id Int
-  docs           Doctor_docs @relation(fields: [doctor_docs_id], references: [id])
+  docs           Doctor_docs @relation(fields: [doctor_docs_id], references: [id], onDelete: Cascade)
 }
 
 model Doctor_book_time {
@@ -138,7 +138,7 @@ model Speciality {
   is_active   Boolean       @default(true)
   description String
   doctorId    Int
-  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  doctor      Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   Book_doctor Book_doctor[]
 }
 
