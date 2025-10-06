@@ -53,6 +53,8 @@ export class DoctorService extends BaseService<
     if (existsPhoneNumber)
       throw new ConflictException('Phone Number already exists');
 
+    const hashed_password = await this.crypto.encrypt(createDoctorDto.password);
+
     return this.prisma.$transaction(async (manager) => {
       const doctor = await manager.doctor.create({
         data: {
@@ -62,6 +64,7 @@ export class DoctorService extends BaseService<
           gender: createDoctorDto.gender,
           phone_number: createDoctorDto.phone_number,
           location: createDoctorDto.location,
+          hashed_password,
           // speciality: {
           //   connect: { id: createDoctorDto.speciality },
           // },
@@ -118,13 +121,6 @@ export class DoctorService extends BaseService<
     const existsPhoneNumber = await this.prisma.doctor.findUnique({
       where: { phone_number },
     });
-    if (existsPhoneNumber && !existsPhoneNumber.is_active) {
-      throw new ForbiddenException(`
-    uz: Sizning arizangiz hali tasdiqlanmagan.
-    en: Your application has not been approved yet.
-    ru: Ваша заявка ещё не подтверждена.
-  `);
-    }
 
     if (!existsPhoneNumber)
       throw new ConflictException(`
@@ -208,6 +204,14 @@ export class DoctorService extends BaseService<
     uz: Telefon raqami yoki parol noto'g'ri.
     en: Phone number or password is incorrect.
     ru: Номер телефона или пароль неверны.
+  `);
+    }
+
+    if (doctor.is_active === false) {
+      throw new ForbiddenException(`
+    uz: Sizning arizangiz hali tasdiqlanmagan.
+    en: Your application has not been approved yet.
+    ru: Ваша заявка ещё не подтверждена.
   `);
     }
 

@@ -62,7 +62,7 @@ export class AdminController {
   @ApiBearerAuth()
   @Post('signout')
   signOut(
-    @CookieGetter('authKey') token: string,
+    @CookieGetter('key') token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.auth.signOut(token, res, 'authKey');

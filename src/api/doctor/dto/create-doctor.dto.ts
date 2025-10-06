@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsStrongPassword,
 } from 'class-validator';
 import { Gender, Roles } from 'src/common/enum';
 
@@ -87,6 +88,13 @@ export class CreateDoctorWithDocumentDto {
   @IsEnum(Roles)
   @IsOptional()
   role: Roles = Roles.DOCTOR;
+
+  @ApiProperty({
+    example: 'Password123!',
+  })
+  @IsStrongPassword()
+  @IsNotEmpty()
+  password: string;
 
   // Doctor_document ma’lumotlari
   // @ApiProperty({

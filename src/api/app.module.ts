@@ -6,6 +6,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CleanupService } from './admin/cron/clear.doctor.service';
+import { DoctorBookTimeModule } from './doctor-book-time/doctor-book-time.module';
 
 @Module({
   imports: [
@@ -23,6 +24,8 @@ import { CleanupService } from './admin/cron/clear.doctor.service';
     }),
 
     ScheduleModule.forRoot(),
+
+    DoctorBookTimeModule,
   ],
 
   providers: [CleanupService],

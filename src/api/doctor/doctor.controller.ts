@@ -54,6 +54,7 @@ export class DoctorController {
         age: { type: 'integer', example: 25 },
         gender: { type: 'string', enum: ['MALE', 'FEMALE'], example: 'MALE' },
         location: { type: 'string', example: 'Tashkent, Uzbekistan' },
+        password: { type: 'string', example: 'Password123!' },
         passport_url: { type: 'string', format: 'binary' },
         diplom_url: { type: 'string', format: 'binary' },
         certificate_url: { type: 'string', format: 'binary' },
@@ -138,17 +139,68 @@ export class DoctorController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, Roles.PATIENT, Roles.DOCTOR)
   @Get()
   findAll() {
     return this.doctorService.findAll({
       where: { is_active: true, is_delete: false },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        phone_number: true,
+        gender: true,
+        location: true,
+        age: true,
+        role: true,
+        is_active: true,
+        is_delete: true,
+
+        speciality: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+
+        doctor_docs: {
+          select: {
+            passport_url: true,
+            diplom_url: true,
+            certificate_url: true,
+            self_employment_url: true,
+            image_url: true,
+            Image: {
+              select: { image_url: true, name: true },
+            },
+          },
+        },
+
+        doctor_book_time: {
+          select: {
+            id: true,
+            date: true,
+            start_time: true,
+            end_time: true,
+          },
+        },
+
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            description: true,
+          },
+        },
+      },
     });
   }
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, 'ID')
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, Roles.PATIENT, 'ID')
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.doctorService.findOne(id);
