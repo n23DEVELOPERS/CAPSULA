@@ -130,10 +130,10 @@ export class DoctorController {
   @ApiBearerAuth()
   @Post('signout')
   signOut(
-    @CookieGetter('doctorToken') token: string,
+    @CookieGetter('authKey') token: string,
     @Res({ passthrough: true }) res: Response,
   ) {
-    return this.auth.signOut(token, res, 'doctorToken');
+    return this.auth.signOut(token, res, 'authKey');
   }
 
   @Post('forget-password')

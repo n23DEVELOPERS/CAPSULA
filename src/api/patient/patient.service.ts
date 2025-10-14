@@ -55,17 +55,15 @@ export class PatientService extends BaseService<
       message: `OTP sent to ${createPatientDto.phone_number}: ${otp}`,
     });
   }
-  async verifyOtpRegister(phone_number: string, otp: string) {
+  async verifyOtpRegister(phone_number: string, otp: string, res: Response) {
     const dataStr: any = await this.otpService.verifyOtp(
       `register:${phone_number}`,
     );
-    console.log(dataStr);
 
     if (dataStr === null || !dataStr) {
       throw new UnauthorizedException('OTP expired or not requested');
     }
     const data = JSON.parse(dataStr);
-    console.log(data);
 
     if (data.otp !== otp) {
       throw new UnauthorizedException('Invalid OTP');
@@ -83,7 +81,15 @@ export class PatientService extends BaseService<
       },
     });
     await this.redis.del(`register:${phone_number}`);
-    return successRes({ message: 'Registration successful', patient }, 201);
+    const payload: IToken = {
+      id: patient.id,
+      isActive: patient.is_active,
+      role: patient.role,
+    };
+    const accessToken = await this.tokenService.accessToken(payload);
+    const refreshToken = await this.tokenService.refreshToken(payload);
+    await this.tokenService.writeCookie(res, 'authKey', refreshToken, 15);
+    return successRes({ token: accessToken });
   }
 
   async forgetPassword(dto: ForgetPassDto) {

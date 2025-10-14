@@ -21,10 +21,14 @@ import { RolesGuard } from 'src/common/guard/role.guard';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
 import { Roles } from 'src/common/enum';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { CookieGetter } from 'src/common/decorator/cookie-getter.decorator';
+import { AuthService } from '../auth/auth..service';
 
 @Controller('patient')
 export class PatientController {
-  constructor(private readonly patientService: PatientService) {}
+  constructor(private readonly patientService: PatientService,
+    private readonly auth: AuthService,
+  ) { }
 
   @Post('sendOtpRegister')
   requestOtp(@Body() dto: CreatePatientDto) {
@@ -32,8 +36,8 @@ export class PatientController {
   }
 
   @Post('verifyAndRegister')
-  verifyOtp(@Body() body: VerifyOtpDto) {
-    return this.patientService.verifyOtpRegister(body.phone_number, body.code);
+  verifyOtp(@Body() body: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
+    return this.patientService.verifyOtpRegister(body.phone_number, body.code, res);
   }
 
   @Post('forgot-password/send-otp')
@@ -62,6 +66,17 @@ export class PatientController {
     @Res({ passthrough: true }) res: Response,
   ) {
     return this.patientService.signIn(signInDto, res);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.PATIENT)
+  @ApiBearerAuth()
+  @Post('signout')
+  signOut(
+    @CookieGetter('authKey') token: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.auth.signOut(token, res, 'authKey');
   }
 
   @UseGuards(AuthGuard, RolesGuard)

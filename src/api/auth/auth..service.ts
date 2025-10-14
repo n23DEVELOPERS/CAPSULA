@@ -109,6 +109,7 @@ export class AuthService {
       role: data.role,
     };
     const accessToken = await this.jwt.accessToken(payload);
+    const refreshToken = await this.jwt.refreshToken(payload);
 
     return successRes({ token: accessToken });
   }
