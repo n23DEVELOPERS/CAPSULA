@@ -5,7 +5,6 @@ import { BaseService } from 'src/infrastructure/base/base.service';
 import { Service } from '@prisma/client';
 import { successRes } from 'src/infrastructure/response/success';
 import { PrismaService } from 'src/core/prisma/prisma.service';
-import { IToken } from 'src/infrastructure/token/interface';
 
 @Injectable()
 export class ServiceService extends BaseService<
@@ -24,16 +23,9 @@ export class ServiceService extends BaseService<
     }
   }
 
-  async createService(createServiceDto: CreateServiceDto, user: IToken) {
-    const doctor_id = user.id;
-    const doktor = await this.prisma.doctor.findUnique({
-      where: { id: doctor_id },
-    });
-    if (!doktor) {
-      throw new NotFoundException('Doktor not found');
-    }
+  async createService(createServiceDto: CreateServiceDto) {
     const newService = await this.prisma.service.create({
-      data: { ...createServiceDto, doctor_id },
+      data: { ...createServiceDto },
     });
     return successRes(newService, 201);
   }
@@ -61,10 +53,6 @@ export class ServiceService extends BaseService<
   }
 
   async updateService(id: number, updateServiceDto: UpdateServiceDto) {
-    const { doctor_id } = updateServiceDto;
-    if (doctor_id) {
-      await this.checkExists(this.prisma.service, doctor_id, 'service');
-    }
     await this.checkExists(this.prisma.service, id, 'service');
 
     const updatedServise = await this.prisma.service.update({

@@ -8,6 +8,12 @@ import { OTPService } from 'src/core/redis.service';
 
 @Module({
   controllers: [PatientController],
-  providers: [PatientService, PrismaService, TokenService, CryptoService, OTPService],
+  providers: [
+    PatientService,
+    // PrismaService,
+    TokenService,
+    CryptoService,
+    OTPService,
+  ],
 })
 export class PatientModule {}

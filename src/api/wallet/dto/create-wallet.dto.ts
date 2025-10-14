@@ -2,45 +2,43 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsOptional,
   IsString,
-  ValidateIf,
-  Matches,
   IsEnum,
-  IsNumber,
-  MinLength,
-  MaxLength,
+  IsNotEmpty,
+  Length,
+  IsInt,
   Min,
+  Max,
 } from 'class-validator';
 import { Wallet_type } from 'src/common/enum';
 
 export class CreateWalletDto {
   @ApiProperty({ example: 'Ali' })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
   name?: string;
 
   @ApiProperty({ example: '9860 1234 1234 5678' })
-  @MaxLength(19)
-  @MinLength(12)
-  @IsOptional()
+  @Length(16,16)
+  @IsNotEmpty()
   @IsString()
   card_number: string;
 
   @ApiProperty({ example: 'HUMO' })
   @IsString()
   @IsEnum(Wallet_type)
+  @IsNotEmpty()
   type: Wallet_type;
 
   @ApiProperty({ example: '08/30' })
-  @MaxLength(5)
-  @MinLength(5)
-  @ValidateIf((o) => o.type === 'VISA' || o.type === 'MASTERCARD')
+  @Length(4, 5)
   @IsString()
-  date?: string;
+  @IsNotEmpty()
+  date: string;
 
   @ApiProperty({ example: 123 })
-  @MaxLength(4)
-  @MinLength(3)
-  @ValidateIf((o) => o.type === 'VISA' || o.type === 'MASTERCARD')
-  @Matches(/^\d{3,4}$/, { message: 'cvv must be 3 or 4 digits' })
+  @IsInt()
+  @Min(100)
+  @Max(9999)
+  @IsOptional()
   cvv?: number;
 }

@@ -1,37 +1,29 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsUUID,
   IsString,
   IsEnum,
-  IsDateString,
   IsOptional,
 } from 'class-validator';
-import { Complaint, Payment_type } from 'src/common/enum';
+import { Payment_type } from 'src/common/enum';
 
 export class CreatePaymentDto {
+  @ApiProperty({
+    example: 1,
+  })
   @IsNotEmpty()
   book_doctor_id: number;
 
-  @IsEnum(Complaint)
-  @IsNotEmpty()
-  status: Complaint;
-
-  @IsString()
-  @IsNotEmpty()
-  pateints_name: string;
-
-  @IsString()
-  @IsNotEmpty()
-  doctor_name: string;
-
+  @ApiProperty({
+    example: Payment_type.CARD,
+  })
   @IsEnum(Payment_type)
   @IsNotEmpty()
   payment_type: Payment_type;
 
-  @IsDateString()
-  @IsNotEmpty()
-  meeting_date: Date;
-
+  @ApiProperty({
+    example: 'Shunchaki alo darajada yozilgan kod',
+  })
   @IsString()
   @IsOptional()
   description?: string;

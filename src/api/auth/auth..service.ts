@@ -67,7 +67,11 @@ export class AuthService {
     if (!isMatch)
       throw new UnauthorizedException('username or password incorrect');
 
-    const payload: IToken = { id: user.id, isActive: user.is_active, role: user.role };
+    const payload: IToken = {
+      id: user.id,
+      isActive: user.is_active,
+      role: user.role,
+    };
     const accessToken = await this.jwt.accessToken(payload);
     const refreshToken = await this.jwt.refreshToken(payload);
 
@@ -99,7 +103,11 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Forbidden user');
 
-    const payload: IToken = { id: user.id, isActive: data.isActive, role: data.role };
+    const payload: IToken = {
+      id: user.id,
+      isActive: data.isActive,
+      role: data.role,
+    };
     const accessToken = await this.jwt.accessToken(payload);
 
     return successRes({ token: accessToken });

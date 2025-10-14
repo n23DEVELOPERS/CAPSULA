@@ -10,26 +10,24 @@ export enum Gender {
   FEMALE = 'FEMALE',
 }
 
-export enum Status {
+export enum BookDoctorStatus {
   PENDING = 'PENDING',
   PROCESS = 'PROCESS',
   SUCCESS = 'SUCCESS',
   CANCELLED = 'CANCELLED',
 }
 
-export enum Rating {
-  ONE = 'ONE',
-  TWO = 'TWO',
-  THREE = 'THREE',
-  FOUR = 'FOUR',
-  FIVE = 'FIVE',
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  CANCELLED = 'CANCELLED',
 }
 
-export enum Complaint {
-  PENDING = 'PENDING',
-  IN_PROGRESS = 'IN_PROGRESS',
-  RESOLVED = 'RESOLVED',
-  REJECTED = 'REJECTED',
+
+
+export enum SendRole {
+  DOCTOR = 'DOCTOR',
+  PATIENT = 'PATIENT'
 }
 
 export enum Payment_type {
@@ -42,4 +40,25 @@ export enum Wallet_type {
   UZCARD = 'UZCARD',
   VISA = 'VISA',
   MASTERCARD = 'MASTERCARD',
+}
+
+export enum DoctorSpeciality {
+  CARDIOLOGIST = 'CARDIOLOGIST', // Yurak shifokori
+  DERMATOLOGIST = 'DERMATOLOGIST', // Teri kasalliklari bo‘yicha
+  NEUROLOGIST = 'NEUROLOGIST', // Asab tizimi bo‘yicha
+  PEDIATRICIAN = 'PEDIATRICIAN', // Bolalar shifokori
+  ORTHOPEDIC = 'ORTHOPEDIC', // Suyak va bo‘g‘im shifokori
+  GYNECOLOGIST = 'GYNECOLOGIST', // Ayollar shifokori
+  UROLOGIST = 'UROLOGIST', // Siydik tizimi shifokori
+  ENDOCRINOLOGIST = 'ENDOCRINOLOGIST', // Gormon tizimi bo‘yicha
+  PSYCHIATRIST = 'PSYCHIATRIST', // Ruhiy kasalliklar bo‘yicha
+  RADIOLOGIST = 'RADIOLOGIST', // Rentgen va MRI bo‘yicha
+  ONCOLOGIST = 'ONCOLOGIST', // Saraton kasalliklari bo‘yicha
+  OPHTHALMOLOGIST = 'OPHTHALMOLOGIST', // Ko‘z shifokori
+  OTOLARYNGOLOGIST = 'OTOLARYNGOLOGIST', // Quloq-burun-tomoq shifokori
+  DENTIST = 'DENTIST', // Tish shifokori
+  SURGEON = 'SURGEON', // Jarroh
+  NEPHROLOGIST = 'NEPHROLOGIST', // Buyrak kasalliklari bo‘yicha
+  HEMATOLOGIST = 'HEMATOLOGIST', // Qon tizimi bo‘yicha
+  GASTROENTEROLOGIST = 'GASTROENTEROLOGIST', // Oshqozon-ichak tizimi bo‘yicha
 }

@@ -1,39 +1,54 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsUUID,
   IsString,
   IsBoolean,
-  IsEnum,
   IsDateString,
   IsOptional,
 } from 'class-validator';
-import { Status } from 'src/common/enum';
 
 export class CreateBookDoctorDto {
+  @ApiProperty({
+    example: 1,
+  })
   @IsNotEmpty()
   service_id: number;
 
+  @ApiProperty({
+    example: 1,
+  })
   @IsNotEmpty()
   doctor_id: number;
 
+  @ApiProperty({
+    example: 1,
+  })
   @IsNotEmpty()
   speciality_id: number;
 
+  @ApiProperty({
+    example: 1,
+  })
   @IsNotEmpty()
   patient_id: number;
 
+  @ApiProperty({
+    example: '2025-10-10T19:30:00+05:00',
+  })
   @IsDateString()
   @IsNotEmpty()
   book_date: Date;
 
+  @ApiProperty({
+    example: false,
+  })
   @IsBoolean()
   @IsOptional()
   is_active?: boolean = false;
 
-  @IsEnum(Status)
-  @IsOptional()
-  status?: Status = Status.PENDING;
-
+  @ApiProperty({
+    example: 'Toshken chilonzor',
+  })
   @IsString()
   @IsOptional()
   location?: string;

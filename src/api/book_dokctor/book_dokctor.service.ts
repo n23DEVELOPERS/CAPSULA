@@ -5,6 +5,9 @@ import { BaseService } from 'src/infrastructure/base/base.service';
 import { PrismaService } from 'src/core/prisma/prisma.service';
 import { Book_doctor } from '@prisma/client';
 import { successRes } from 'src/infrastructure/response/success';
+import { Roles } from 'src/common/enum';
+import { TokenService } from 'src/infrastructure/token/Token';
+import { config } from 'src/config';
 
 @Injectable()
 export class BookDokctorServic extends BaseService<
@@ -12,8 +15,11 @@ export class BookDokctorServic extends BaseService<
   UpdateBookDokctorDto,
   Book_doctor
 > {
-  constructor(protected prisma: PrismaService) {
-    super(prisma, prisma.book_doctor, 'book_doktor not fount');
+  constructor(
+    protected prisma: PrismaService,
+    private readonly token: TokenService,
+  ) {
+    super(prisma, prisma.book_doctor, 'book_doctor not fount');
   }
 
   async checkExists(model: any, id: number, name: string): Promise<void> {
@@ -37,7 +43,67 @@ export class BookDokctorServic extends BaseService<
     const newBookDoctor = await this.prisma.book_doctor.create({
       data: { ...createBookDoctorDto, location },
     });
+
     return successRes(newBookDoctor, 201);
+  }
+
+  async findAllBook(token: string) {
+    const decoded = (await this.token.verifyToken(
+      token,
+      config.TOKEN.REFRESH_KEY,
+    )) as any;
+    console.log(decoded);
+    if (decoded.role === Roles.PATIENT) {
+      const wall = await this.prisma.book_doctor.findMany({
+        where: { patient_id: decoded.id },
+      });
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
+    if (decoded.role === Roles.DOCTOR) {
+      const wall = await this.prisma.book_doctor.findMany({
+        where: { doctor_id: decoded.id },
+      });
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
+    if (decoded.role === Roles.ADMIN || decoded.role === Roles.SUPERADMIN) {
+      const wall = await this.prisma.book_doctor.findMany();
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
+  }
+
+  async findOneByIdBook(id: number, token: string) {
+    const decoded = (await this.token.verifyToken(
+      token,
+      config.TOKEN.REFRESH_KEY,
+    )) as any;
+    if (decoded.role === Roles.PATIENT) {
+      const wall = await this.prisma.book_doctor.findMany({
+        where: { patient_id: decoded.id, id },
+      });
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
+    if (decoded.role === Roles.DOCTOR) {
+      const wall = await this.prisma.book_doctor.findMany({
+        where: { doctor_id: decoded.id, id },
+      });
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
+    if (decoded.role === Roles.ADMIN || decoded.role === Roles.SUPERADMIN) {
+      const wall = await this.prisma.book_doctor.findMany({ where: { id } });
+      if (wall.length === 0)
+        throw new NotFoundException('Book doctor not found');
+      return successRes(wall);
+    }
   }
 
   async updateBook(id: number, updateBookDoctorDto: UpdateBookDokctorDto) {

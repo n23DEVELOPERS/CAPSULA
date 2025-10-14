@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, IsDecimal } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
 export class CreateServiceDto {
   @ApiProperty()
   @IsString()
@@ -7,17 +7,12 @@ export class CreateServiceDto {
   name: string;
 
   @ApiProperty()
-  @IsDecimal()
+  @IsNumber()
   @IsNotEmpty()
-  price: string;
+  price: number;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  doctor_id: number;
 }

@@ -12,10 +12,11 @@ export class OTPService {
   async sendOtp(key: string, min: number, value: object) {
     const otp = this.generateOtp();
     await this.redis.setEx(key, min * 60, JSON.stringify({ value, otp }));
+    console.log(otp);
     return otp;
   }
 
   async verifyOtp(key: string) {
-    return this.redis.get(key);
+    return await this.redis.get(key);
   }
 }

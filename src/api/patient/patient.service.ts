@@ -44,33 +44,41 @@ export class PatientService extends BaseService<
     if (exists) {
       throw new ConflictException('Phone number already registered');
     }
-    const otp = this.otpService.sendOtp(
+    const otp = await this.otpService.sendOtp(
       `register:${createPatientDto.phone_number}`,
       5,
       { ...createPatientDto },
     );
+    console.log(otp);
+
     return successRes({
       message: `OTP sent to ${createPatientDto.phone_number}: ${otp}`,
     });
   }
   async verifyOtpRegister(phone_number: string, otp: string) {
-    const dataStr: any = this.otpService.verifyOtp(`register:${phone_number}`);
+    const dataStr: any = await this.otpService.verifyOtp(
+      `register:${phone_number}`,
+    );
+    console.log(dataStr);
+
     if (dataStr === null || !dataStr) {
       throw new UnauthorizedException('OTP expired or not requested');
     }
     const data = JSON.parse(dataStr);
+    console.log(data);
+
     if (data.otp !== otp) {
       throw new UnauthorizedException('Invalid OTP');
     }
-    const hashedPassword = await this.crypto.encrypt(data.password);
+    const hashedPassword = await this.crypto.encrypt(data.value.password);
     const patient = await this.prisma.patient.create({
       data: {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone_number: data.phone_number,
-        age: data.age,
-        gender: data.gender,
-        location: data.location,
+        first_name: data.value.first_name,
+        last_name: data.value.last_name,
+        phone_number: data.value.phone_number,
+        age: data.value.age,
+        gender: data.value.gender,
+        location: data.value.location,
         hashed_password: hashedPassword,
       },
     });
@@ -146,7 +154,7 @@ export class PatientService extends BaseService<
     };
     const accessToken = await this.tokenService.accessToken(payload);
     const refreshToken = await this.tokenService.refreshToken(payload);
-    await this.tokenService.writeCookie(res, 'userToken', refreshToken, 15);
+    await this.tokenService.writeCookie(res, 'authKey', refreshToken, 15);
     return successRes({ token: accessToken });
   }
 

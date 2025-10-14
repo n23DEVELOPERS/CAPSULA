@@ -11,6 +11,14 @@ import { ServiceModule } from './service/service.module';
 import { PaymentModule } from './payment/payment.module';
 import { SpecialityModule } from './speciality/speciality.module';
 import { BookDokctorModule } from './book_dokctor/book_dokctor.module';
+import { ChatModule } from './chat/chat.module';
+import { AiChatModule } from './ai-chat/ai-chat.module';
+import { AdminModule } from './admin/admin.module';
+import { DoctorModule } from './doctor/doctor.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DoctorBookTimeModule } from './doctor-book-time/doctor-book-time.module';
+import { PrismaModule } from 'src/core/prisma/prisma.module';
 
 @Module({
   imports: [
@@ -30,6 +38,14 @@ import { BookDokctorModule } from './book_dokctor/book_dokctor.module';
       }),
     }),
 
+    ServeStaticModule.forRoot({
+      rootPath: '/root/uploads',
+      serveRoot: '/api/v1/uploads',
+    }),
+
+    ScheduleModule.forRoot(),
+
+    PrismaModule,
     AuthModule,
     PatientModule,
     WalletModule,
@@ -38,6 +54,12 @@ import { BookDokctorModule } from './book_dokctor/book_dokctor.module';
     PaymentModule,
     SpecialityModule,
     BookDokctorModule,
+    ChatModule,
+    AiChatModule,
+    AdminModule,
+    DoctorModule,
+    DoctorBookTimeModule,
   ],
+  providers: [],
 })
 export class AppModule {}

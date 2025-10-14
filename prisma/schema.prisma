@@ -19,27 +19,24 @@ enum Gender {
   FEMALE
 }
 
-enum Status {
-  PENDING
-  PROCESS
-  SUCCESS
-  CANCELLED
+enum BookDoctorStatus {
+    PENDING
+    PROCESS
+    SUCCESS
+    CANCELLED
 }
 
-enum Rating {
-  ONE
-  TWO
-  THREE
-  FOUR
-  FIVE
+enum PaymentStatus {
+    PENDING
+    PAID
+    CANCELLED
 }
 
-enum Complaint {
-  PENDING
-  IN_PROGRESS
-  RESOLVED
-  REJECTED
+enum SendRole {
+  DOCTOR
+  PATIENT
 }
+
 
 enum Payment_type {
   CASH
@@ -52,6 +49,28 @@ enum Wallet_type {
   VISA
   MASTERCARD
 }
+
+enum DoctorSpeciality {
+  CARDIOLOGIST
+  DERMATOLOGIST
+  NEUROLOGIST
+  PEDIATRICIAN
+  ORTHOPEDIC
+  GYNECOLOGIST
+  UROLOGIST
+  ENDOCRINOLOGIST
+  PSYCHIATRIST
+  RADIOLOGIST
+  ONCOLOGIST
+  OPHTHALMOLOGIST
+  OTOLARYNGOLOGIST
+  DENTIST
+  SURGEON
+  NEPHROLOGIST
+  HEMATOLOGIST
+  GASTROENTEROLOGIST
+}
+
 
 model Admin {
   id              Int     @id @default(autoincrement())
@@ -72,6 +91,7 @@ model Doctor {
   hashed_password String
   location        String
   is_active       Boolean @default(false)
+  is_delete       Boolean @default(false)
   role            Roles   @default(DOCTOR)
 
   speciality       Speciality[]
@@ -79,7 +99,6 @@ model Doctor {
   doctor_book_time Doctor_book_time[]
   service          Service[]
   book_doctor      Book_doctor[]
-  chat             Chat[]
 }
 
 model Patient {
@@ -95,18 +114,18 @@ model Patient {
   role            Roles   @default(PATIENT)
 
   Book_doctor Book_doctor[]
-  Chat        Chat[]
+  AiChat      AiChat[]
 }
 
 model Doctor_docs {
   id                  Int     @id @default(autoincrement())
-  passport_url        String
-  diplom_url          String
-  certificate_url     String
-  self_employment_url String
-  image_url           String
-  doctor_id            Int
-  doctor              Doctor  @relation(fields: [doctor_id], references: [id])
+  passport_url        String?
+  diplom_url          String?
+  certificate_url     String?
+  self_employment_url String?
+  image_url           String?
+  doctor_id           Int
+  doctor              Doctor  @relation(fields: [doctor_id], references: [id], onDelete: Cascade)
   Image               Image[]
 }
 
@@ -120,31 +139,27 @@ model Image {
 
 model Doctor_book_time {
   id         Int      @id @default(autoincrement())
-  date       DateTime
-  start_time DateTime
-  end_time   DateTime
+  date       DateTime?
   is_active  Boolean  @default(true)
-  doctor_id   Int
+  doctor_id  Int
   doctor     Doctor   @relation(fields: [doctor_id], references: [id])
 }
 
 model Speciality {
   id          Int           @id @default(autoincrement())
-  name        String
+  name        DoctorSpeciality @unique
   is_active   Boolean       @default(true)
   description String
-  doctor_id    Int
-  doctor      Doctor        @relation(fields: [doctor_id], references: [id])
+  doctor      Doctor[]     
   Book_doctor Book_doctor[]
 }
 
 model Service {
   id          Int           @id @default(autoincrement())
   name        String
-  price       Decimal
+  price       Int
   description String
-  doctor_id    Int
-  doctor      Doctor        @relation(fields: [doctor_id], references: [id])
+  doctor      Doctor[]
   Book_doctor Book_doctor[]
 }
 
@@ -152,7 +167,7 @@ model Book_doctor {
   id        Int      @id @default(autoincrement())
   book_date DateTime
   is_active Boolean  @default(true)
-  status    Status   @default(PENDING)
+  status    BookDoctorStatus   @default(PENDING)
   location  String
 
   service_id Int
@@ -165,27 +180,35 @@ model Book_doctor {
   patient    Patient @relation(fields: [patient_id], references: [id])
 
   doctor_id Int
-  doctor   Doctor @relation(fields: [doctor_id], references: [id])
+  doctor    Doctor @relation(fields: [doctor_id], references: [id])
 
   Payment Payment[]
 }
 
 model Chat {
-  id        Int       @id @default(autoincrement())
-  rating    Rating    @default(ONE)
-  comments  String
-  complaint Complaint @default(PENDING)
+  id           Int       @id @default(autoincrement())
+  doctor_id    Int
+  patient_id   Int
+  sender_role  SendRole
+  message      String
+  sent_at      DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
 
-  doctor_id Int
-  doctor    Doctor @relation(fields: [doctor_id], references: [id])
 
+model AiChat {
+  id         Int      @id @default(autoincrement())
   patient_id Int
-  patient    Patient @relation(fields: [patient_id], references: [id])
+  patient    Patient  @relation(fields: [patient_id], references: [id])
+  question   String
+  answer     String
+  createdAt  DateTime @default(now())
 }
 
 model Payment {
   id           Int          @id @default(autoincrement())
-  status       Status       @default(PENDING)
+  status       PaymentStatus       @default(PENDING)
   patient_name String
   doctor_name  String
   payment_type Payment_type @default(CARD)
@@ -199,10 +222,11 @@ model Payment {
 model Wallet {
   id          Int         @id @default(autoincrement())
   name        String
-  card_number String
+  card_number String      @unique
   type        Wallet_type @default(HUMO)
   date        String
   cvv         Int
   balence     Int         @default(0)
-  user_id Int?
+  patient_id     Int?
+  doctor_id      Int?
 }

@@ -7,15 +7,20 @@ import {
   Param,
   Delete,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { ApiProperty } from '@nestjs/swagger';
 import { VerifyOtpDto } from 'src/common/dto/verify-otp.dto';
 import { SignInUserDto } from 'src/common/dto/sign-in-user.dto';
 import type { Response } from 'express';
 import { ForgetPassDto } from 'src/common/dto/forgetPass.dto';
+import { AuthGuard } from 'src/common/guard/auth.guard';
+import { RolesGuard } from 'src/common/guard/role.guard';
+import { AccessRoles } from 'src/common/decorator/roles.decorator';
+import { Roles } from 'src/common/enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('patient')
 export class PatientController {
@@ -59,26 +64,34 @@ export class PatientController {
     return this.patientService.signIn(signInDto, res);
   }
 
-  @ApiProperty()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
   @Get()
+  @ApiBearerAuth()
   findAll() {
     return this.patientService.findAll();
   }
 
-  @ApiProperty()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN)
   @Get(':id')
+  @ApiBearerAuth()
   findOne(@Param('id') id: number) {
     return this.patientService.findOneById(id);
   }
 
-  @ApiProperty()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, 'ID')
   @Patch(':id')
+  @ApiBearerAuth()
   update(@Param('id') id: number, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientService.updatePatient(id, updatePatientDto);
   }
 
-  @ApiProperty()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, 'ID')
   @Delete(':id')
+  @ApiBearerAuth()
   remove(@Param('id') id: number) {
     return this.patientService.delete(id);
   }
