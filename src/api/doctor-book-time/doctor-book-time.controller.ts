@@ -13,7 +13,7 @@ import { CreateDoctorBookTimeDto } from './dto/create-doctor-book-time.dto';
 import { UpdateDoctorBookTimeDto } from './dto/update-doctor-book-time.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
-import { Roles } from '@prisma/client';
+import { Roles } from "src/common/enum/index";
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/role.guard';
 import { CookieGetter } from 'src/common/decorator/cookie-getter.decorator';
