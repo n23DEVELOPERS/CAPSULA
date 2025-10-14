@@ -79,6 +79,6 @@ export class AiChatService {
     await this.prisma.aiChat.delete({
       where: { id },
     });
-    return successRes({})
+    return successRes({});
   }
 }

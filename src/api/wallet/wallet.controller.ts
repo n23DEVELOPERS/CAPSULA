@@ -45,8 +45,6 @@ export class WalletController {
     return this.walletService.findAll();
   }
 
-  
-
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(Roles.SUPERADMIN, Roles.ADMIN, Roles.DOCTOR, Roles.PATIENT)
   @Get(':id')
@@ -63,7 +61,7 @@ export class WalletController {
     @GetRequestUser('user') user: IToken,
     @Body() debutWalletDto: DebutWalletDto,
   ) {
-    return this.walletService.debutWallet( debutWalletDto, user);
+    return this.walletService.debutWallet(debutWalletDto, user);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

@@ -329,14 +329,19 @@ export class DoctorService extends BaseService<
     );
     console.log(decoded, dto);
     if (decoded.role !== Roles.DOCTOR) {
-      throw new BadRequestException("You don't have the option to perform this operation")
+      throw new BadRequestException(
+        "You don't have the option to perform this operation",
+      );
     }
     const bookD = await this.prisma.book_doctor.findUnique({
       where: { id: dto.book_id },
     });
     if (!bookD) throw new NotFoundException('Book doctor not found');
-    await this.prisma.book_doctor.update({ where: { id: dto.book_id }, data: { status: dto.status } });
-    return successRes({message: `update success ( ${dto.status} )`});
+    await this.prisma.book_doctor.update({
+      where: { id: dto.book_id },
+      data: { status: dto.status },
+    });
+    return successRes({ message: `update success ( ${dto.status} )` });
   }
 
   async deleteDoctor(id: number) {

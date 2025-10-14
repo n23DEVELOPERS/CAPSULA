@@ -23,11 +23,9 @@ export enum PaymentStatus {
   CANCELLED = 'CANCELLED',
 }
 
-
-
 export enum SendRole {
   DOCTOR = 'DOCTOR',
-  PATIENT = 'PATIENT'
+  PATIENT = 'PATIENT',
 }
 
 export enum Payment_type {

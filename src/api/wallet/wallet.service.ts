@@ -30,9 +30,11 @@ export class WalletService extends BaseService<
   }
   async createWallet(createWalletDto: CreateWalletDto, userToken: IToken) {
     const { type, cvv, card_number } = createWalletDto;
-    const cardExists=await this.prisma.wallet.findUnique({where:{card_number}})
-    if(cardExists){
-      throw new ConflictException('Card number aldready exists')
+    const cardExists = await this.prisma.wallet.findUnique({
+      where: { card_number },
+    });
+    if (cardExists) {
+      throw new ConflictException('Card number aldready exists');
     }
     if ((type === Wallet_type.HUMO || type === Wallet_type.UZCARD) && cvv) {
       throw new BadRequestException(
@@ -122,14 +124,19 @@ export class WalletService extends BaseService<
     });
   }
 
-  async debutWallet(debutWalletDto:DebutWalletDto, user:IToken){
-    const cardNumber=await this.prisma.wallet.findUnique({where:{id:debutWalletDto.id}})
-    if(!cardNumber){
-      throw new NotFoundException('Wollet number not found')
+  async debutWallet(debutWalletDto: DebutWalletDto, user: IToken) {
+    const cardNumber = await this.prisma.wallet.findUnique({
+      where: { id: debutWalletDto.id },
+    });
+    if (!cardNumber) {
+      throw new NotFoundException('Wollet number not found');
     }
-    const newBal = cardNumber.balence + debutWalletDto.debutBalans
-    const data=await this.prisma.wallet.update({where:{id:debutWalletDto.id}, data:{balence:newBal}})
-    
-    return successRes({message:`balans ${data.balence}`})
+    const newBal = cardNumber.balence + debutWalletDto.debutBalans;
+    const data = await this.prisma.wallet.update({
+      where: { id: debutWalletDto.id },
+      data: { balence: newBal },
+    });
+
+    return successRes({ message: `balans ${data.balence}` });
   }
 }

@@ -19,6 +19,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DoctorBookTimeModule } from './doctor-book-time/doctor-book-time.module';
 import { PrismaModule } from 'src/core/prisma/prisma.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+
 
 @Module({
   imports: [
@@ -43,6 +46,15 @@ import { PrismaModule } from 'src/core/prisma/prisma.module';
       serveRoot: '/api/v1/uploads',
     }),
 
+    ThrottlerModule.forRoot([
+      {
+        name: 'global',
+        ttl: 1 * 1000 * 60,
+        limit: 5
+      },
+    ]),
+
+
     ScheduleModule.forRoot(),
 
     PrismaModule,
@@ -60,6 +72,7 @@ import { PrismaModule } from 'src/core/prisma/prisma.module';
     DoctorModule,
     DoctorBookTimeModule,
   ],
-  providers: [],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+
 })
-export class AppModule {}
+export class AppModule { }

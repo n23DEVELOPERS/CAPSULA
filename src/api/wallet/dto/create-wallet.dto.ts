@@ -18,7 +18,7 @@ export class CreateWalletDto {
   name?: string;
 
   @ApiProperty({ example: '9860 1234 1234 5678' })
-  @Length(16,16)
+  @Length(16, 16)
   @IsNotEmpty()
   @IsString()
   card_number: string;

@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { SignInOtpDto } from './dto/signin-otp.dto';
 import type { Response } from 'express';
-import {  Roles } from 'src/common/enum';
+import { Roles } from 'src/common/enum';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/role.guard';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
@@ -316,9 +316,9 @@ export class DoctorController {
   updateStat(
     @Body() dto: UpdateBookStatus,
     @CookieGetter('authKey') token: string,
-  ){
+  ) {
     console.log(dto);
-    return this.doctorService.updateStatus(dto,token);
+    return this.doctorService.updateStatus(dto, token);
   }
 
   @ApiBearerAuth()

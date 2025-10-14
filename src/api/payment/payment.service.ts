@@ -37,11 +37,7 @@ export class PaymentService extends BaseService<
   }
 
   async createPayment(createPaymentDto: CreatePaymentDto) {
-    const {
-      book_doctor_id,
-      payment_type,
-      description,
-    } = createPaymentDto;
+    const { book_doctor_id, payment_type, description } = createPaymentDto;
 
     const bookDoctor = await this.prisma.book_doctor.findUnique({
       where: { id: book_doctor_id },
@@ -132,11 +128,7 @@ export class PaymentService extends BaseService<
     token: string,
     updatePaymentDto: UpdatePaymentDto,
   ) {
-    const {
-      book_doctor_id,
-      payment_type,
-      description,
-    } = updatePaymentDto;
+    const { book_doctor_id, payment_type, description } = updatePaymentDto;
 
     const decoded: any = await this.token.verifyToken(
       token,
