@@ -34,7 +34,7 @@ export class BaseService<CreateDto, UpdateDto, Entity> {
     page?: number;
     limit?: number;
   }): Promise<ISuccess> {
-    const page = options?.page ?? 1;
+    const page = options?.page ?? 1;3
     const limit = options?.limit ?? 10;
     const skip = (page - 1) * limit;
 
